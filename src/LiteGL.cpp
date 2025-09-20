@@ -31,7 +31,7 @@ void loop(){
 }
 
 void start(){
-	LiteAPI::Logger::info("LiteGL engine version "+std::to_string(LITEGL_VERSION_MAJOR)+"."+std::to_string(LITEGL_VERSION_MINOR));
+	LiteAPI::Logger::info("LiteGL engine version "+std::to_string(LITEGL_VERSION_MAJOR)+"."+std::to_string(LITEGL_VERSION_MINOR)+" by "+LITE_AUTHOR);
 	GameLDR::loadgame("./litegl-game");
 	PRIV_Window::initialize();
 	LiteAPI::Logger::info("window and context created.");

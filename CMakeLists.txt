@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project (LiteGL)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 find_package(glfw3 REQUIRED)
 find_package(SFML CONFIG COMPONENTS graphics system REQUIRED)
 find_package(Freetype REQUIRED)
@@ -33,15 +36,4 @@ install(EXPORT LiteGLTargets
     FILE LiteGLConfig.cmake
     NAMESPACE LiteGL::
     DESTINATION lib/cmake/LiteGL
-)
-include(CMakePackageConfigHelpers)
-write_basic_package
-_version_file(
-    LiteGLConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/LiteGLConfigVersion.cmake
-    DESTINATION out/lib/cmake/LiteGL
 )
