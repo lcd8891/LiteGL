@@ -14,6 +14,9 @@ Engine executable file run game from litegl-game.dll (**Windows**) or litegl-gam
 ## Problems (solved and need to solve)
 1. No LiteAPI library for making game.
 2. No template for game.
+3. I need to remove some shit.
+4. No cmake config for LiteAPI.
+5. I don't know what type of library i need to use with Lite components
 
 ## Requirement (now)
 |Library|Version|
