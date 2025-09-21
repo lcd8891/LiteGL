@@ -12,8 +12,8 @@ version 1.0
 Engine executable file run game from litegl-game.dll (**Windows**) or litegl-game.so (**linux**). Game can access with engine by LiteAPI, what give you a buffers to storage resources, OpenGL objects, window control.
 
 ## Problems (solved and need to solve)
-1. idk how to link game with LiteAPI using CMAKE (i forgot how to do it)
-2. no template for game
+1. No LiteAPI library for making game.
+2. No template for game.
 
 ## Requirement (now)
 |Library|Version|
