@@ -8,17 +8,17 @@ LiteGL is a engine for easy creating 2d and 3d games on OpenGL
 ```
 version 1.0 
 
-## How it work?
+# How it work?
 Engine executable file run game from litegl-game.dll (**Windows**) or litegl-game.so (**linux**). Game can access with engine by LiteAPI, what give you a buffers to storage resources, OpenGL objects, window control.
 
-## Problems (solved and need to solve)
+# Problems (solved and need to solve)
 1. No LiteAPI library for making game.
 2. No template for game.
 3. I need to remove some shit.
 4. No cmake config for LiteAPI.
 5. I don't know what type of library i need to use with Lite components
 
-## Requirement (now)
+# Requirement (now)
 |Library|Version|
 |:-----:|:-----:|
 |**C++**|**17+**|
@@ -27,5 +27,5 @@ Engine executable file run game from litegl-game.dll (**Windows**) or litegl-gam
 |GLM|1.0.1-1|
 |Freetype 2|2.13.3-1|
 
-## Documentation 
+# Documentation 
 You can read documentation in docs folder. *(maybe)*
