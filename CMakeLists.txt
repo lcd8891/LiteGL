@@ -7,13 +7,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/bin)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_INSTALL_PREFIX C:/msys64/mingw64)
 
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-
-include(GenerateExportHeader)
 
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
 add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp)
@@ -28,7 +27,6 @@ add_library(lite-api SHARED
     $<TARGET_OBJECTS:lite-system>
     $<TARGET_OBJECTS:lite-glctrl>
 )
-generate_export_header(lite-api EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/lite-api_export.h)
 target_include_directories(lite-api
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>

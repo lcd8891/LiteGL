@@ -3,7 +3,7 @@
 #define LITE_AUTHOR "lcd8891"
 #define LITEGL_VERSION_MAJOR 1
 #define LITEGL_VERSION_MINOR 0
-#define _LITE_GAME_ extern "c"
+#define _LITE_GAME_ extern "C"
 
 #ifndef __cplusplus
     #error "You using a C instead C++. Read a REQUIREMENTS in README.md"
