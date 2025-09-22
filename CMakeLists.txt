@@ -1,39 +1,79 @@
 cmake_minimum_required(VERSION 3.10)
-project (LiteGL)
+project (LiteGL VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/bin)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(glfw3 REQUIRED)
-find_package(SFML CONFIG COMPONENTS graphics system REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
-add_library(lite-buffers SHARED src/buffer/buffer.cpp)
-add_library(lite-graphic SHARED src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp)
-add_library(lite-window SHARED src/window/window.cpp)
-add_library(lite-system SHARED src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp)
-add_library(lite-glctrl SHARED src/glctrl/glctrl.cpp)
+include(GenerateExportHeader)
 
-add_library(lite-api SHARED nothing.cpp)
+add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
+add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp)
+add_library(lite-window OBJECT src/window/window.cpp)
+add_library(lite-system OBJECT src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp)
+add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
+
+add_library(lite-api SHARED 
+    $<TARGET_OBJECTS:lite-buffers>
+    $<TARGET_OBJECTS:lite-graphic>
+    $<TARGET_OBJECTS:lite-window>
+    $<TARGET_OBJECTS:lite-system>
+    $<TARGET_OBJECTS:lite-glctrl>
+)
+generate_export_header(lite-api EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/lite-api_export.h)
+target_include_directories(lite-api
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw)
 
 add_executable(${PROJECT_NAME} src/LiteGL.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE lite-api)
 
 include_directories(${CMAKE_HOME_DIRECTORY}/include)
 
-target_link_libraries(lite-glctrl PRIVATE OpenGL::GL)
-target_link_libraries(lite-buffers PRIVATE lite-graphic OpenGL::GL GLEW::GLEW lite-system)
-target_link_libraries(lite-window PRIVATE glfw OpenGL::GL GLEW::GLEW)
-target_link_libraries(lite-graphic PRIVATE OpenGL::GL GLEW::GLEW lite-system)
-
-target_link_libraries(lite-api PUBLIC lite-window lite-system lite-buffers lite-glctrl)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw OpenGL::GL GLEW::GLEW lite-api)
-
-install(TARGETS lite-api lite-buffers lite-graphic lite-window lite-system lite-glctrl EXPORT LiteGLTargets LIBRARY DESTINATION out/lib ARCHIVE DESTINATION out/lib RUNTIME DESTINATION out/bin INCLUDES DESTINATION out/include)
+install(FILES 
+    ${CMAKE_BINARY_DIR}/lite-api_export.h
+    DESTINATION include
+)
+install(TARGETS lite-api 
+    EXPORT LiteGLTargets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+    INCLUDES DESTINATION include
+)
 install(DIRECTORY include/ DESTINATION include)
 install(EXPORT LiteGLTargets
     FILE LiteGLConfig.cmake
     NAMESPACE LiteGL::
     DESTINATION lib/cmake/LiteGL
+)
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_BINARY_DIR}/LiteGLConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+install(FILES
+    ${CMAKE_BINARY_DIR}/LiteGLConfigVersion.cmake
+    DESTINATION lib/cmake/LiteGL
+)
+add_custom_command(TARGET lite-api POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_BINARY_DIR}/include/lite-api_export.h
+        ${CMAKE_HOME_DIRECTORY}/out/include/
+    COMMAND ${CMAKE_COMMAND} -E copy
+        ${CMAKE_BINARY_DIR}/LiteGLConfigVersion.cmake
+        ${CMAKE_HOME_DIRECTORY}/out/lib/cmake/LiteGL/
+    COMMENT "Copying export header and config files to output directory"
 )
