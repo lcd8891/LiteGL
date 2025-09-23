@@ -1,6 +1,8 @@
 #pragma once
 #include "shader.hpp"
 
+using uint8 = unsigned char;
+
 namespace LiteAPI{
     enum class ShaderType;
 }
@@ -20,6 +22,7 @@ namespace LiteAPI{
     class ShaderConstructor{
         private:
         _ShaderProgram** programs;
+        uint8 size;
         void paste(const _ShaderProgram &_prog);
 
         public:

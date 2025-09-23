@@ -67,23 +67,15 @@ namespace LiteAPI{
         return true;
     }
     void ShaderConstructor::clear(){
-        for(int i = 0;i<128;i++){
-            if(this->programs[i]){
-                delete this->programs[i];
-            }else{
-                break;
-            }
+        for(int i = 0;i<this->size;i++){
+            delete this->programs[i];
         }
-        delete[] this->programs;
+        this->size = 0;
     }
     Shader* ShaderConstructor::create() const {
         unsigned int shader = glCreateProgram();
-        for(int i = 0;i<128;i++){
-            if(this->programs[i]){
-                delete this->programs[i];
-            }else{
-                break;
-            }
+        for(int i = 0;i<this->size;i++){
+            glAttachShader(shader,this->programs[i]->ID);
         }
         glLinkProgram(shader);int status;
         glGetProgramiv(shader,GL_LINK_STATUS,&status);
@@ -96,11 +88,8 @@ namespace LiteAPI{
         return new Shader(shader);
     }
     void ShaderConstructor::paste(const _ShaderProgram &_prog){
-        for(int i = 0;i<128;i++){
-            if(!this->programs[i]){
-                this->programs[i] = new _ShaderProgram(_prog);
-                break;
-            }
-        }
+        if(size==128)throw std::runtime_error("ShaderConstructor overcreate\n(shaders count in 1 shaderconstructor limit reached)");
+        this->programs[size] = new _ShaderProgram(_prog);
+        size++;
     }
 }

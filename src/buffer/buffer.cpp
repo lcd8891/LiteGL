@@ -54,7 +54,7 @@ namespace LiteAPI{
             Texture* texture = _load_from_file("./res/textures/"+_path);
             _B_NEW(texture_map,texture)
         }
-        Texture* get(std::string _name){
+        Texture* get_texture(std::string _name){
             _B_GET(texture_map)
         }
         void delete_texture(std::string _name){
@@ -65,17 +65,17 @@ namespace LiteAPI{
         }
     }
     namespace ShaderBuffer{
-        Shader* load_from_res(const ShaderConstructor &_constructor,std::string _name){
+        Shader* load_from_constructor(const ShaderConstructor &_constructor,std::string _name){
             Shader *shader = _constructor.create();
             _B_NEW(shader_map,shader);
         }
-        Shader* get(std::string _name){
+        Shader* get_shader(std::string _name){
             _B_GET(shader_map)
         }
         void delete_shader(std::string _name){
             _B_DEL(shader_map)
         }
-        void delete_all(){
+        void delete_all_shaders(){
             _B_CLR(shader_map)
         }
     }

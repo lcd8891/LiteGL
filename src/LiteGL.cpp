@@ -20,6 +20,8 @@ void finalize(){
 	
 	LiteAPI::Logger::info("finalizing engine...");
 	PRIV_Window::finalize();
+	LiteAPI::ShaderBuffer::delete_all_shaders();
+	LiteAPI::TextureBuffer::delete_all_textures();
 }
 
 void loop(){
@@ -37,6 +39,7 @@ void start(){
 	LiteAPI::Logger::info("window and context created.");
 	try{
 		LiteGame::on_initialize();
+		LiteAPI::Logger::info("Initialize successfully!");
 		loop();
 	}catch(const std::exception& e){
 		std::string err_msg;
