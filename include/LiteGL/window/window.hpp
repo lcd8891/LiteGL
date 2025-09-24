@@ -143,6 +143,9 @@ namespace LiteAPI{
         void setFullscreen(bool _fullscreen);
         bool getFullscreen();
 	    void set_attribute(LiteAPI::WindowAttribute _attr,int _value);
+        void set_position(vector2<uint16> _position);
+        void set_size(vector2<uint16> _size);
+        vector2<uint16> get_screen_size();
         vector2<uint16> getSize();
     }
     namespace Events{

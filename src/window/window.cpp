@@ -1,9 +1,11 @@
 #include <GL/glew.h>
+#include "../../lib/stb_image.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "../privtypes.hpp"
 #include <LiteGL/window/window.hpp>
 #include <cstring>
+#include <filesystem>
 
 #define _MOUSE_BUTTONS 1024
 
@@ -17,13 +19,16 @@ uint32 _char_input;
 
 namespace PRIV_Window{
 	vector2<uint16> window_size;
+	vector2<uint16> default_default_size;
+	std::string default_window_title;
+	std::string default_window_icon;
 	void initialize(){
 		glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
         glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE,true);
-        window = glfwCreateWindow(800,600,"LiteGL Engine",nullptr,nullptr);
+        window = glfwCreateWindow(800,600,"LiteGL Engine",glfwGetPrimaryMonitor(),nullptr);
 		if(!window){
 			glfwTerminate();
 			throw std::runtime_error("Couldn't create GLFW window.");
@@ -34,6 +39,10 @@ namespace PRIV_Window{
 			glfwTerminate();
 			throw std::runtime_error("Couldn't initialize glew.");
 		}
+		window_size = {800,600};
+		default_window_title = "LiteGL Engine";
+		default_default_size = {800,600};
+		default_window_icon = "ico.png";
 		glViewport(0,0,window_size.x,window_size.y);
 		glfwSetWindowSizeLimits(window,800,600,-1,-1);
 
@@ -106,6 +115,23 @@ namespace PRIV_Window{
 		_current++;
 		glfwPollEvents();
 	}
+	void apply_defaults(){
+		LiteAPI::Window::set_size(default_default_size);
+		vector2<uint16> size = LiteAPI::Window::get_screen_size();
+		size.x/=2;size.x -= (default_default_size.x / 2);
+		size.y/=2;size.y -= (default_default_size.y / 2);
+		LiteAPI::Window::set_position(size);
+	}
+	void set_window_icon(std::filesystem::path _path){
+		std::filesystem::path full_path = "./res/";
+		full_path/=_path;
+		std::string str_path = full_path.string();
+		int x,y,mode;
+		unsigned char* data = stbi_load(str_path.c_str(),&x,&y,&mode,0);
+		GLFWimage icon;icon.height=y,icon.width=x;icon.pixels=data;
+		glfwSetWindowIcon(window,1,&icon);
+		stbi_image_free(data);
+	}
 }
 
 namespace LiteAPI{
@@ -132,7 +158,19 @@ namespace LiteAPI{
 		vector2<uint16> getSize(){
 			return PRIV_Window::window_size;
 		}
-		
+		void set_position(vector2<uint16> _position){
+			glfwSetWindowPos(window,_position.x,_position.y);
+		}
+		void set_size(vector2<uint16> _size){
+			glfwSetWindowSize(window,_size.x,_size.y);
+			glViewport(0,0,_size.x,_size.y);
+			PRIV_Window::window_size = _size;
+		}
+		vector2<uint16> get_screen_size(){
+			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			return {mode->width,mode->height};
+		}
 		void set_attribute(LiteAPI::WindowAttribute _attr,int _value){
 			glfwSetWindowAttrib(window,(int)_attr,_value);
 		}
