@@ -28,7 +28,7 @@ namespace PRIV_Window{
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
         glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE,true);
-        window = glfwCreateWindow(800,600,"LiteGL Engine",glfwGetPrimaryMonitor(),nullptr);
+        window = glfwCreateWindow(800,600,"LiteGL Engine",nullptr,nullptr);
 		if(!window){
 			glfwTerminate();
 			throw std::runtime_error("Couldn't create GLFW window.");
@@ -139,13 +139,19 @@ namespace LiteAPI{
 		void setTitle(std::string _title){
 			glfwSetWindowTitle(window,_title.c_str());
 		}
-		void setFullscreen(bool _fullscreen){
+		void setFullscreen(bool _fullscreen, vector2<uint16> _size){
 			__fullscreen = _fullscreen;
 			GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode *mode = glfwGetVideoMode(monitor);
+			vector2<uint16> nullpos = {0,0};
 			if(__fullscreen){
-				glfwSetWindowMonitor(window,monitor,0,0,mode->width,mode->height,mode->refreshRate);
-				PRIV_Window::window_size.x = mode->width;PRIV_Window::window_size.y = mode->height;
+				if(_size.is_equals(nullpos)){
+					glfwSetWindowMonitor(window,monitor,0,0,mode->width,mode->height,mode->refreshRate);
+					PRIV_Window::window_size.x = mode->width;PRIV_Window::window_size.y = mode->height;
+				}else{
+					glfwSetWindowMonitor(window,monitor,0,0,_size.x,_size.y,mode->refreshRate);
+					PRIV_Window::window_size.x = _size.x;PRIV_Window::window_size.y = _size.y;
+				}
 			}else{
 				glfwSetWindowMonitor(window,nullptr,mode->width/2-400,mode->height/2-300,800,600,mode->refreshRate);
 				PRIV_Window::window_size.x = 800;PRIV_Window::window_size.y = 600;

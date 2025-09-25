@@ -11,5 +11,9 @@ namespace PRIV_default{
     void apply_defaults(){
         PRIV_Window::default_window_title = default_settings.window_title;
         PRIV_Window::default_default_size = default_settings.window_size;
+        if(!default_settings.window_title.empty()){
+            PRIV_Window::default_window_title = default_settings.window_title;
+        }
+        PRIV_Window::apply_defaults();
     }
 }

@@ -17,7 +17,7 @@ find_package(GLEW REQUIRED)
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
 add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp)
 add_library(lite-window OBJECT src/window/window.cpp)
-add_library(lite-system OBJECT src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp)
+add_library(lite-system OBJECT src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp src/types.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
 add_library(lite-defaults OBJECT src/default.cpp)
 

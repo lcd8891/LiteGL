@@ -140,7 +140,7 @@ namespace LiteAPI{
     };
     namespace Window{
         void setTitle(std::string _title);
-        void setFullscreen(bool _fullscreen);
+        void setFullscreen(bool _fullscreen, vector2<uint16> _size = {0,0});
         bool getFullscreen();
 	    void set_attribute(LiteAPI::WindowAttribute _attr,int _value);
         void set_position(vector2<uint16> _position);

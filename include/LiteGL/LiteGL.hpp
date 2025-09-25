@@ -12,9 +12,12 @@
     #warning "LiteGL engine fully compatible with C++ 17 and maybe some problems with older version of C++."
 #endif
 
+#include <string>
+
 #include "logger.hpp"
 #include "time.hpp"
 #include "types.hpp"
+#include "default.hpp"
 
 #include "glctrl/glctrl.hpp"
 #include "buffer/buffers.hpp"

@@ -1,5 +1,6 @@
 #include <LiteGL/time.hpp>
 #include <ctime>
+#include <LiteGL/types.hpp>
 
 namespace LiteAPI{
     Time getCurrentTime(){
