@@ -34,11 +34,16 @@ unsigned int _compileshader(const std::string &_code,LiteAPI::ShaderType _type){
 }
 
 namespace LiteAPI{
-    ShaderConstructor::ShaderConstructor(){
+    ShaderConstructor::_ShaderProgram::_ShaderProgram(unsigned int _id, LiteAPI::ShaderType _type):ID(_id),type(_type){}
+    ShaderConstructor::_ShaderProgram::~_ShaderProgram(){
+        glDeleteShader(this->ID);
+    }
+    ShaderConstructor::ShaderConstructor():size(0){
         programs = new _ShaderProgram*[128];
     }
     ShaderConstructor::~ShaderConstructor(){
         this->clear();
+        delete[] this->programs;
     }
     bool ShaderConstructor::addFromFile(std::string _path,ShaderType _type){
         std::ifstream file("./res/shaders/"+_path);
@@ -52,7 +57,7 @@ namespace LiteAPI{
             Logger::error(std::string(e.what()));
             return false;
         }
-        this->paste({shader,_type});
+        this->paste(new _ShaderProgram(shader,_type));
         return true;
     }
     bool ShaderConstructor::addFromString(std::string _code,ShaderType _type){
@@ -63,7 +68,7 @@ namespace LiteAPI{
             Logger::error(std::string(e.what()));
             return false;
         }
-        this->paste({shader,_type});
+        this->paste(new _ShaderProgram(shader,_type));
         return true;
     }
     void ShaderConstructor::clear(){
@@ -83,13 +88,14 @@ namespace LiteAPI{
             char log[512];
             glGetProgramInfoLog(shader,512,nullptr,&log[0]);
             Logger::error("Linking error: "+std::string(log));
+            glDeleteProgram(shader);
             return nullptr;
         }
         return new Shader(shader);
     }
-    void ShaderConstructor::paste(const _ShaderProgram &_prog){
+    void ShaderConstructor::paste(_ShaderProgram *_prog){
         if(size==128)throw std::runtime_error("ShaderConstructor overcreate\n(shaders count in 1 shaderconstructor limit reached)");
-        this->programs[size] = new _ShaderProgram(_prog);
+        this->programs[size] = _prog;
         size++;
     }
 }

@@ -20,6 +20,7 @@ add_library(lite-window OBJECT src/window/window.cpp)
 add_library(lite-system OBJECT src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp src/types.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
 add_library(lite-defaults OBJECT src/default.cpp)
+add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
 
 add_library(lite-api SHARED 
     $<TARGET_OBJECTS:lite-buffers>
@@ -28,6 +29,7 @@ add_library(lite-api SHARED
     $<TARGET_OBJECTS:lite-system>
     $<TARGET_OBJECTS:lite-glctrl>
     $<TARGET_OBJECTS:lite-defaults>
+    $<TARGET_OBJECTS:lite-screen>
 )
 target_include_directories(lite-api
     PUBLIC

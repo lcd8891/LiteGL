@@ -12,7 +12,6 @@ version 1.0
 Engine executable file run game from litegl-game. Game can access with engine by LiteAPI, what give you a buffers to storage resources, OpenGL objects, window control.
 
 # Problems (solved and need to solve)
-nothing
 
 # Requirement
 **You need MinGW C++. MSVC not suppored!**

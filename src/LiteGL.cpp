@@ -1,9 +1,11 @@
-#include "window/window.hpp"
 #include <exception>
 #define LOGGER_GROUP "main"
 #include <LiteGL/LiteGL.hpp>
-#include "gameldr/gameldr.hpp"
 #include <stdexcept>
+#include <LiteGL/screen/screenmgr.hpp>
+#include "gameldr/gameldr.hpp"
+#include "window/window.hpp"
+#include "priv/cache.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -17,8 +19,8 @@ void enable_ascii(){
 #endif
 
 void finalize(){
-	
 	LiteAPI::Logger::info("finalizing engine...");
+	LiteAPI::Screenmgr::finalize();
 	PRIV_Window::finalize();
 	LiteAPI::ShaderBuffer::delete_all_shaders();
 	LiteAPI::TextureBuffer::delete_all_textures();
@@ -34,10 +36,12 @@ void loop(){
 
 void start(){
 	LiteAPI::Logger::info("LiteGL engine version "+std::to_string(LITEGL_VERSION_MAJOR)+"."+std::to_string(LITEGL_VERSION_MINOR)+" by "+LITE_AUTHOR);
+	Cache::check_cache_folder();
 	GameLDR::loadgame("./litegl-game");
 	PRIV_Window::initialize();
 	LiteAPI::Logger::info("window and context created.");
 	try{
+		LiteAPI::Screenmgr::initialize();
 		LiteGame::on_initialize();
 		LiteAPI::Logger::info("Initialize successfully!");
 		loop();

@@ -6,6 +6,7 @@
 #include <LiteGL/window/window.hpp>
 #include <cstring>
 #include <filesystem>
+#include <LiteGL/screen/screenmgr.hpp>
 
 #define _MOUSE_BUTTONS 1024
 
@@ -57,6 +58,7 @@ namespace PRIV_Window{
 			PRIV_Window::window_size.x = width;
 			PRIV_Window::window_size.y = height;
 			glViewport(0,0,width,height);
+			LiteAPI::Screenmgr::recalc_screenView();
 		});
 		glfwSetCharCallback(window,[](GLFWwindow* window,uint32 ch){
 			_char_input = ch;
@@ -157,6 +159,7 @@ namespace LiteAPI{
 				PRIV_Window::window_size.x = 800;PRIV_Window::window_size.y = 600;
 			}
 			glViewport(0,0,PRIV_Window::window_size.x,PRIV_Window::window_size.y);
+			Screenmgr::recalc_screenView();
 		}
 		bool getFullscreen(){
 			return __fullscreen;
@@ -171,6 +174,7 @@ namespace LiteAPI{
 			glfwSetWindowSize(window,_size.x,_size.y);
 			glViewport(0,0,_size.x,_size.y);
 			PRIV_Window::window_size = _size;
+			Screenmgr::recalc_screenView();
 		}
 		vector2<uint16> get_screen_size(){
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();

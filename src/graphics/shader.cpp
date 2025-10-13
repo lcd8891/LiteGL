@@ -30,4 +30,7 @@ namespace LiteAPI{
         GLuint location = glGetUniformLocation(id,name.c_str());
         glUniform3f(location,_x,_y,_z);
     }
+    unsigned int Shader::getID(){
+        return this->id;
+    }
 }
