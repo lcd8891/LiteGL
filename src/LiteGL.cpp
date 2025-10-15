@@ -6,6 +6,7 @@
 #include "gameldr/gameldr.hpp"
 #include "window/window.hpp"
 #include "priv/cache.hpp"
+#include "priv/cmdinfo.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,6 +37,7 @@ void loop(){
 
 void start(){
 	LiteAPI::Logger::info("LiteGL engine version "+std::to_string(LITEGL_VERSION_MAJOR)+"."+std::to_string(LITEGL_VERSION_MINOR)+" by "+LITE_AUTHOR);
+	OUTINFO::output();
 	Cache::check_cache_folder();
 	GameLDR::loadgame("./litegl-game");
 	PRIV_Window::initialize();

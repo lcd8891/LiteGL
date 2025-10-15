@@ -8,7 +8,6 @@ namespace LiteAPI{
         unsigned int id;
         public:
         Shader(unsigned int _id);
-        Shader(std::string _path);
         ~Shader();
 
         void bind();
