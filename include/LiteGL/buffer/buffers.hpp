@@ -2,3 +2,4 @@
 
 #include "tb.hpp"
 #include "sb.hpp"
+#include "scrbuffer.hpp"

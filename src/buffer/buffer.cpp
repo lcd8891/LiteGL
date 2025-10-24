@@ -1,5 +1,6 @@
 #include <LiteGL/buffer/buffers.hpp>
 #include <LiteGL/graphics/graphics.hpp>
+#include <LiteGL/screen/screenmgr.hpp>
 #define LOGGER_GROUP "buffers"
 #include <LiteGL/logger.hpp>
 #include <map>
@@ -10,6 +11,7 @@
 
 std::map<std::string,LiteAPI::Texture*> texture_map;
 std::map<std::string,LiteAPI::Shader*> shader_map;
+std::map<std::string,LiteAPI::Screen*> screen_map;
 
 #define _B_NEW(BUF,OBJ) auto it = BUF.find(_name); if(it == BUF.end()){BUF[_name] = OBJ;}else{delete it->second;it->second = OBJ;Logger::warning("overriding resource: "+_name);} return OBJ;
 #define _B_GET(BUF) auto it = BUF.find(_name);if(it == BUF.end()){throw std::runtime_error("trying to get unknown resource: "+_name);}else{return it->second;}
@@ -77,6 +79,21 @@ namespace LiteAPI{
         }
         void delete_all_shaders(){
             _B_CLR(shader_map)
+        }
+    }
+    namespace ScreenBuffer{
+        Screen* create_screen(std::string _name){
+            Screen* sas = new Screen;
+            _B_NEW(screen_map,sas);
+        }
+        Screen* get_screen(std::string _name){
+            _B_GET(screen_map);
+        }
+        void delete_screen(std::string _name){
+            _B_DEL(shader_map);
+        }
+        void delete_all_screens(){
+            _B_CLR(shader_map);
         }
     }
 }

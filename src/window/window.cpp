@@ -179,7 +179,7 @@ namespace LiteAPI{
 		vector2<uint16> get_screen_size(){
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-			return {mode->width,mode->height};
+			return {(uint16)mode->width,(uint16)mode->height};
 		}
 		void set_attribute(LiteAPI::WindowAttribute _attr,int _value){
 			glfwSetWindowAttrib(window,(int)_attr,_value);

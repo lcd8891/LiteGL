@@ -25,6 +25,7 @@ void finalize(){
 	PRIV_Window::finalize();
 	LiteAPI::ShaderBuffer::delete_all_shaders();
 	LiteAPI::TextureBuffer::delete_all_textures();
+	LiteAPI::ScreenBuffer::delete_all_screens();
 }
 
 void loop(){
