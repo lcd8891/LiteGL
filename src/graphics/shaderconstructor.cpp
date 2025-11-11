@@ -2,7 +2,7 @@
 #include <sstream>
 #include <fstream>
 #define LOGGER_GROUP "ShaderConstructor"
-#include <LiteGL/logger.hpp>
+#include "../system/priv_logger.hpp"
 #include <stdexcept>
 #include <GL/glew.h>
 
@@ -47,14 +47,14 @@ namespace LiteAPI{
     }
     bool ShaderConstructor::addFromFile(std::string _path,ShaderType _type){
         std::ifstream file("./res/shaders/"+_path);
-        if(!file.is_open()){Logger::error("Couldn't open file: ./res/shaders/"+_path);}
+        if(!file.is_open()){system_logger->error() << ("Couldn't open file: ./res/shaders/"+_path);}
         std::stringstream ss;
         ss << file.rdbuf();
         unsigned int shader;
         try{
             shader = _compileshader(ss.str(),_type);
         }catch(const std::exception &e){
-            Logger::error(std::string(e.what()));
+            system_logger->error() << (std::string(e.what()));
             return false;
         }
         this->paste(new _ShaderProgram(shader,_type));
@@ -65,7 +65,7 @@ namespace LiteAPI{
         try{
             shader = _compileshader(_code,_type);
         }catch(const std::exception &e){
-            Logger::error(std::string(e.what()));
+            system_logger->error() << (std::string(e.what()));
             return false;
         }
         this->paste(new _ShaderProgram(shader,_type));
@@ -87,7 +87,7 @@ namespace LiteAPI{
         if(!status){
             char log[512];
             glGetProgramInfoLog(shader,512,nullptr,&log[0]);
-            Logger::error("Linking error: "+std::string(log));
+            system_logger->error() << ("Linking error: "+std::string(log));
             glDeleteProgram(shader);
             return nullptr;
         }

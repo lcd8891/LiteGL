@@ -1,6 +1,5 @@
 #pragma once
 
-#define LITE_AUTHOR "lcd8891"
 #define LITEGL_VERSION_MAJOR 1
 #define LITEGL_VERSION_MINOR 0
 #define _LITE_GAME_ extern "C"
@@ -14,10 +13,10 @@
 
 #include <string>
 
-#include "logger.hpp"
-#include "time.hpp"
-#include "types.hpp"
-#include "default.hpp"
+#include "system/logger.hpp"
+#include "system/time.hpp"
+#include "system/types.hpp"
+#include "system/default.hpp"
 
 #include "glctrl/glctrl.hpp"
 #include "buffer/buffers.hpp"

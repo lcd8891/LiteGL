@@ -2,13 +2,19 @@
 #include "../../lib/stb_image.h"
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "../privtypes.hpp"
+#include "../system/privtypes.hpp"
 #include <LiteGL/window/window.hpp>
 #include <cstring>
 #include <filesystem>
 #include <LiteGL/screen/screenmgr.hpp>
 
 #define _MOUSE_BUTTONS 1024
+
+namespace PRIV{
+	namespace ScreenMGR{
+        void recalc_screenView();
+	}
+}
 
 GLFWwindow* window;
 uint32 *_frames;
@@ -58,7 +64,7 @@ namespace PRIV_Window{
 			PRIV_Window::window_size.x = width;
 			PRIV_Window::window_size.y = height;
 			glViewport(0,0,width,height);
-			LiteAPI::Screenmgr::recalc_screenView();
+			PRIV::ScreenMGR::recalc_screenView();
 		});
 		glfwSetCharCallback(window,[](GLFWwindow* window,uint32 ch){
 			_char_input = ch;
@@ -118,11 +124,11 @@ namespace PRIV_Window{
 		glfwPollEvents();
 	}
 	void apply_defaults(){
-		LiteAPI::Window::set_size(default_default_size);
-		vector2<uint16> size = LiteAPI::Window::get_screen_size();
+		LiteAPI::Window::setSize(default_default_size);
+		vector2<uint16> size = LiteAPI::Window::getScreenSize();
 		size.x/=2;size.x -= (default_default_size.x / 2);
 		size.y/=2;size.y -= (default_default_size.y / 2);
-		LiteAPI::Window::set_position(size);
+		LiteAPI::Window::setPosition(size);
 	}
 	void set_window_icon(std::filesystem::path _path){
 		std::filesystem::path full_path = "./res/";
@@ -159,7 +165,7 @@ namespace LiteAPI{
 				PRIV_Window::window_size.x = 800;PRIV_Window::window_size.y = 600;
 			}
 			glViewport(0,0,PRIV_Window::window_size.x,PRIV_Window::window_size.y);
-			Screenmgr::recalc_screenView();
+			PRIV::ScreenMGR::recalc_screenView();
 		}
 		bool getFullscreen(){
 			return __fullscreen;
@@ -167,21 +173,21 @@ namespace LiteAPI{
 		vector2<uint16> getSize(){
 			return PRIV_Window::window_size;
 		}
-		void set_position(vector2<uint16> _position){
+		void setPosition(vector2<uint16> _position){
 			glfwSetWindowPos(window,_position.x,_position.y);
 		}
-		void set_size(vector2<uint16> _size){
+		void setSize(vector2<uint16> _size){
 			glfwSetWindowSize(window,_size.x,_size.y);
 			glViewport(0,0,_size.x,_size.y);
 			PRIV_Window::window_size = _size;
-			Screenmgr::recalc_screenView();
+			PRIV::ScreenMGR::recalc_screenView();
 		}
-		vector2<uint16> get_screen_size(){
+		vector2<uint16> getScreenSize(){
 			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 			return {(uint16)mode->width,(uint16)mode->height};
 		}
-		void set_attribute(LiteAPI::WindowAttribute _attr,int _value){
+		void setAttribute(LiteAPI::WindowAttribute _attr,int _value){
 			glfwSetWindowAttrib(window,(int)_attr,_value);
 		}
 	}

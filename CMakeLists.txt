@@ -15,11 +15,11 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
-add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp)
-add_library(lite-window OBJECT src/window/window.cpp)
-add_library(lite-system OBJECT src/logger.cpp src/time.cpp src/gameldr/gameldr.cpp src/types.cpp)
+add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp src/graphics/vertexarray.cpp)
+add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
+add_library(lite-system OBJECT src/system/logger.cpp src/system/time.cpp src/gameldr/gameldr.cpp src/system/types.cpp src/system/arguments.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
-add_library(lite-defaults OBJECT src/default.cpp)
+add_library(lite-defaults OBJECT src/system/default.cpp)
 add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
 
 add_library(lite-api SHARED 
@@ -38,7 +38,11 @@ target_include_directories(lite-api
 )
 target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw)
 
+if(WIN32)
+add_executable(${PROJECT_NAME} WIN32 src/LiteGL.cpp)
+else()
 add_executable(${PROJECT_NAME} src/LiteGL.cpp)
+endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE lite-api)
 
 include_directories(${CMAKE_HOME_DIRECTORY}/include)

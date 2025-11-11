@@ -1,5 +1,5 @@
 #pragma once
-#include <LiteGL/default.hpp>
+#include <LiteGL/system/default.hpp>
 
 namespace PRIV_default{
     LiteAPI::LiteDefaults default_settings;

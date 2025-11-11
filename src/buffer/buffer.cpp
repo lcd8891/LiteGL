@@ -2,7 +2,7 @@
 #include <LiteGL/graphics/graphics.hpp>
 #include <LiteGL/screen/screenmgr.hpp>
 #define LOGGER_GROUP "buffers"
-#include <LiteGL/logger.hpp>
+#include "../system/priv_logger.hpp"
 #include <map>
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../lib/stb_image.h"
@@ -13,9 +13,9 @@ std::map<std::string,LiteAPI::Texture*> texture_map;
 std::map<std::string,LiteAPI::Shader*> shader_map;
 std::map<std::string,LiteAPI::Screen*> screen_map;
 
-#define _B_NEW(BUF,OBJ) auto it = BUF.find(_name); if(it == BUF.end()){BUF[_name] = OBJ;}else{delete it->second;it->second = OBJ;Logger::warning("overriding resource: "+_name);} return OBJ;
+#define _B_NEW(BUF,OBJ) auto it = BUF.find(_name); if(it == BUF.end()){BUF[_name] = OBJ;}else{delete it->second;it->second = OBJ;system_logger->warn() << ("overriding resource: "+_name);} return OBJ;
 #define _B_GET(BUF) auto it = BUF.find(_name);if(it == BUF.end()){throw std::runtime_error("trying to get unknown resource: "+_name);}else{return it->second;}
-#define _B_DEL(BUF) auto it = BUF.find(_name);if(it == BUF.end()){Logger::warning("trying to delete unknown resource: "+_name);}else{delete it->second;BUF.erase(_name);}
+#define _B_DEL(BUF) auto it = BUF.find(_name);if(it == BUF.end()){system_logger->warn() << ("trying to delete unknown resource: "+_name);}else{delete it->second;BUF.erase(_name);}
 #define _B_CLR(BUF) for(auto &it : BUF){delete it.second;}BUF.clear();
 
 LiteAPI::Texture* _load_from_file(const std::string _path){

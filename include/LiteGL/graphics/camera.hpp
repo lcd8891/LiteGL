@@ -1,6 +1,6 @@
 #pragma once
 #include <glm/matrix.hpp>
-#include <LiteGL/types.hpp>
+#include <LiteGL/system/types.hpp>
 
 namespace LiteAPI{
     class Camera{

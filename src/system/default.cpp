@@ -1,5 +1,5 @@
 #include "priv_default.hpp"
-#include "./window/window.hpp"
+#include "../window/window.hpp"
 
 namespace LiteAPI{
     void setDefault(const LiteDefaults& _default){

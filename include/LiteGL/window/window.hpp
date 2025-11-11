@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <LiteGL/types.hpp>
+#include <LiteGL/system/types.hpp>
 
 namespace LiteAPI{
     enum class WindowAttribute{
@@ -142,10 +142,10 @@ namespace LiteAPI{
         void setTitle(std::string _title);
         void setFullscreen(bool _fullscreen, vector2<uint16> _size = {0,0});
         bool getFullscreen();
-	    void set_attribute(LiteAPI::WindowAttribute _attr,int _value);
-        void set_position(vector2<uint16> _position);
-        void set_size(vector2<uint16> _size);
-        vector2<uint16> get_screen_size();
+	    void setAttribute(LiteAPI::WindowAttribute _attr,int _value);
+        void setPosition(vector2<uint16> _position);
+        void setSize(vector2<uint16> _size);
+        vector2<uint16> getScreenSize();
         vector2<uint16> getSize();
     }
     namespace Events{

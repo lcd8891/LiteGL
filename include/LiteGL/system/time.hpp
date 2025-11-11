@@ -1,6 +1,5 @@
 #pragma once
-#include <LiteGL/types.hpp>
-
+#include "types.hpp"
 namespace LiteAPI{
     struct Time{
         uint8 hour;

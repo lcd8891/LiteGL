@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <LiteGL/types.hpp>
+#include "types.hpp"
 
 namespace LiteAPI{
     struct LiteDefaults{

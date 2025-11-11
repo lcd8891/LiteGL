@@ -10,6 +10,7 @@ namespace LiteGame{
 }
 
 namespace GameLDR{
-    void loadgame(std::string _path);
+    extern std::string loadpath;
+    void loadgame();
     void reload_game();
 }

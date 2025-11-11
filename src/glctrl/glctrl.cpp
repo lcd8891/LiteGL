@@ -1,6 +1,6 @@
 #include <LiteGL/glctrl/glctrl.hpp>
 #include <GL/gl.h>
-#include <LiteGL/types.hpp>
+#include <LiteGL/system/types.hpp>
 
 #define GL_ON_OFF(V) (_enable ? glEnable : glDisable)(V);
 

@@ -1,5 +1,5 @@
 #include <LiteGL/graphics/texture.hpp>
-#include <LiteGL/types.hpp>
+#include <LiteGL/system/types.hpp>
 #include <stdexcept>
 #include <GL/glew.h>
 

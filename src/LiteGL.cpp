@@ -6,22 +6,20 @@
 #include "gameldr/gameldr.hpp"
 #include "window/window.hpp"
 #include "priv/cache.hpp"
-#include "priv/cmdinfo.hpp"
+#include "system/priv_arguements.hpp"
+#include "system/priv_logger.hpp"
+#include "window/exception.hpp"
 
-#ifdef _WIN32
-#include <windows.h>
-void enable_ascii(){
-    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD dwMode = 0;
-    GetConsoleMode(hOut, &dwMode);
-    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-    SetConsoleMode(hOut, dwMode);
+namespace PRIV{
+	namespace ScreenMGR{
+        void initialize();
+        void finalize();
+	}
 }
-#endif
 
 void finalize(){
-	LiteAPI::Logger::info("finalizing engine...");
-	LiteAPI::Screenmgr::finalize();
+	system_logger->info() << "finalizing engine...";
+	PRIV::ScreenMGR::finalize();
 	PRIV_Window::finalize();
 	LiteAPI::ShaderBuffer::delete_all_shaders();
 	LiteAPI::TextureBuffer::delete_all_textures();
@@ -37,38 +35,40 @@ void loop(){
 }
 
 void start(){
-	LiteAPI::Logger::info("LiteGL engine version "+std::to_string(LITEGL_VERSION_MAJOR)+"."+std::to_string(LITEGL_VERSION_MINOR)+" by "+LITE_AUTHOR);
-	OUTINFO::output();
+	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
 	Cache::check_cache_folder();
-	GameLDR::loadgame("./litegl-game");
+	GameLDR::loadgame();
+	Logger::init_for_game();
 	PRIV_Window::initialize();
-	LiteAPI::Logger::info("window and context created.");
+	system_logger->info() << "";
 	try{
-		LiteAPI::Screenmgr::initialize();
+		PRIV::ScreenMGR::initialize();
 		LiteGame::on_initialize();
-		LiteAPI::Logger::info("Initialize successfully!");
+		PRIV::Args::process_flags();
+		system_logger->info() << "Initialize successfully!";
 		loop();
+		LiteGame::on_exit();
 	}catch(const std::exception& e){
-		std::string err_msg;
-		err_msg+="Internal error:\n";
-		err_msg+=e.what();
-		err_msg+="\n\nLiteGL Game: ";
-		err_msg+=LiteGame::game_name;
-		throw std::runtime_error(err_msg);
+		std::string out = "RUNTIME ERROR:\n->Ingame execution error: game_id:"+LiteGame::game_name+"\n-->Reason: "+e.what();
+		show_error(out);
 	}
-	LiteGame::on_exit();
 	finalize();
 }
 
 
 int main(int argc, char **argv) {
-	enable_ascii();
+	PRIV::Args::parse_all(argc,argv);
 	try{
+		Logger::initialize();
 		start();
 	}catch(const std::exception &e){
 		finalize();
-		LiteAPI::Logger::error("Exception: "+std::string(e.what()));
+		std::string out = "ENGINE RUNTIME ERROR:\n->Reason: ";
+		out+=e.what();
+		show_error(out);
+		Logger::close();
 		return 1;
 	}
+	Logger::close();
 	return 0;
 }
