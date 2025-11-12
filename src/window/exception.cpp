@@ -21,11 +21,11 @@ void show_error(const std::string _str){
     bool dialog_shown = false;
         
     const char* dialog_commands[] = {
-        "zenity --error --text=\"%s\" --title=\"Error\"",
         "kdialog --error \"%s\"",
+        "zenity --error --text=\"%s\" --title=\"Error\"",
+        "xmessage -center \"%s\"",
         "yad --error --text=\"%s\" --title=\"Error\"",
         "gxmessage \"%s\"",
-        "xmessage -center \"%s\"",
         nullptr
     };
         

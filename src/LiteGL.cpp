@@ -5,10 +5,11 @@
 #include <LiteGL/screen/screenmgr.hpp>
 #include "gameldr/gameldr.hpp"
 #include "window/window.hpp"
-#include "priv/cache.hpp"
+
 #include "system/priv_arguements.hpp"
 #include "system/priv_logger.hpp"
 #include "window/exception.hpp"
+#include "system/signals.hpp"
 
 namespace PRIV{
 	namespace ScreenMGR{
@@ -24,6 +25,7 @@ void finalize(){
 	LiteAPI::ShaderBuffer::delete_all_shaders();
 	LiteAPI::TextureBuffer::delete_all_textures();
 	LiteAPI::ScreenBuffer::delete_all_screens();
+	GameLDR::close();
 }
 
 void loop(){
@@ -36,12 +38,11 @@ void loop(){
 
 void start(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
-	Cache::check_cache_folder();
 	GameLDR::loadgame();
-	Logger::init_for_game();
 	PRIV_Window::initialize();
 	system_logger->info() << "";
 	try{
+		Logger::init_for_game();
 		PRIV::ScreenMGR::initialize();
 		LiteGame::on_initialize();
 		PRIV::Args::process_flags();
@@ -58,6 +59,7 @@ void start(){
 
 int main(int argc, char **argv) {
 	PRIV::Args::parse_all(argc,argv);
+	init_signal_handler(finalize);
 	try{
 		Logger::initialize();
 		start();
@@ -70,5 +72,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	Logger::close();
+    #ifdef _WIN32
+    PRIV::Args::hold_console();
+    #endif
 	return 0;
 }

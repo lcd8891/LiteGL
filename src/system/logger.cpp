@@ -69,7 +69,7 @@ namespace LiteAPI{
         } else {
             ss << level;
         }
-        ss << ") " << message << '\n';
+        ss << ") " << message;
         
         std::string log_entry = ss.str();
         

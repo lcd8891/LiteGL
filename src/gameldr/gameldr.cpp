@@ -68,6 +68,13 @@ namespace GameLDR{
         }
         system_logger->info()<<"Loaded game: "+LiteGame::game_name;
     }
+    void close(){
+        #ifdef WIN32
+        
+        #else
+        dlclose(handle);
+        #endif
+    }
     void reload_game(){
 
     }

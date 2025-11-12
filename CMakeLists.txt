@@ -17,7 +17,7 @@ find_package(GLEW REQUIRED)
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
 add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp src/graphics/vertexarray.cpp)
 add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
-add_library(lite-system OBJECT src/system/logger.cpp src/system/time.cpp src/gameldr/gameldr.cpp src/system/types.cpp src/system/arguments.cpp)
+add_library(lite-system OBJECT src/system/logger.cpp src/system/time.cpp src/gameldr/gameldr.cpp src/system/types.cpp src/system/arguments.cpp src/system/cache.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
 add_library(lite-defaults OBJECT src/system/default.cpp)
 add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
@@ -83,3 +83,6 @@ add_custom_command(TARGET lite-api POST_BUILD
         ${CMAKE_HOME_DIRECTORY}/out/lib/cmake/LiteGL/
     COMMENT "Copying export header and config files to output directory"
 )
+if(WIN32)
+
+endif()
