@@ -7,9 +7,10 @@ namespace ENGINE_RES{
         layout(location=0) in vec2 v_pos;
         layout(location=1) in vec4 v_color;
         out vec4 f_color;
+        uniform mat4 view;
         void main(){
             f_color = v_color;
-            gl_Position = vec4(v_pos,0,1);
+            gl_Position = view * vec4(v_pos,1,1);
         }
     )";
     std::string rect_code_frag = R"(

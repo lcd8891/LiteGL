@@ -17,7 +17,7 @@ namespace LiteAPI{
             }
             glClear(b);
         }
-        void clear_color(color _color){
+        void clear_color(color4 _color){
             glClearColor(_color.r / 255.f, _color.g / 255.f,_color.b / 255.f,_color.a / 255.f);
         }
         void face_culling(bool _enable){

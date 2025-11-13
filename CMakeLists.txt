@@ -7,7 +7,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/out/bin)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+if(WIN32)
 set(CMAKE_INSTALL_PREFIX C:/msys64/mingw64)
+endif()
 
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
@@ -83,6 +85,4 @@ add_custom_command(TARGET lite-api POST_BUILD
         ${CMAKE_HOME_DIRECTORY}/out/lib/cmake/LiteGL/
     COMMENT "Copying export header and config files to output directory"
 )
-if(WIN32)
-
-endif()
+add_subdirectory("test_game")

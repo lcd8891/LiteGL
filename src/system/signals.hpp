@@ -4,7 +4,7 @@
 #include <functional>
 #include "../window/exception.hpp"
 
-std::function<void()> func = nullptr;
+namespace{std::function<void()> func = nullptr;}
 
 #ifdef _WIN32
 #include <windows.h>
@@ -83,10 +83,12 @@ std::function<void()> func = nullptr;
                             std::to_string(exception_code);
         }
         show_error(error_msg);
+        func();
         TerminateProcess(GetCurrentProcess(), exception_code);
         return EXCEPTION_EXECUTE_HANDLER;
     }
-    void init_signal_handler(std::function<void()>){
+    void init_signal_handler(std::function<void()> _func){
+    func=_func;
         SetUnhandledExceptionFilter(windows_exception_handler);
         SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
     }
@@ -152,11 +154,13 @@ void signal_action_handler(int sig, siginfo_t* info, void* context){
             error_msg += "Неизвестный сигнал (" + std::to_string(sig) + ")";
     }
     show_error(error_msg);
+    func();
     signal(sig, SIG_DFL);
     raise(sig);
 }
 
-void init_signal_handler(std::function<void()>){
+void init_signal_handler(std::function<void()> _func){
+    func=_func;
     struct sigaction sa;
     sa.sa_sigaction = signal_action_handler;
     sa.sa_flags = SA_SIGINFO | SA_RESTART | SA_RESETHAND;

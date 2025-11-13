@@ -3,6 +3,7 @@
 #include <glm/mat4x4.hpp>
 #include <unordered_map>
 #include <string>
+#include "screenitems.hpp"
 
 namespace LiteAPI{
     class ScreenItem;
@@ -18,7 +19,7 @@ namespace LiteAPI{
         ScreenItem* getItem(std::string _name);
     };
     namespace ScreenMGR{
-        extern glm::mat4 screenView;
+        extern const glm::mat4 &screenView;
         void set_screen(std::string _name);
         void update_screen();
         void render_screen();

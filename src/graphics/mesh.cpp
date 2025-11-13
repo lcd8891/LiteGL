@@ -28,6 +28,7 @@ LiteAPI::Mesh::~Mesh(){
     glDeleteBuffers(1,&vbo);
 }
 void LiteAPI::Mesh::reload(const float* _buffer,uint64 _vertices){
+    vertices = _vertices;
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_STATIC_DRAW);
@@ -72,6 +73,7 @@ LiteAPI::DynamicMesh::~DynamicMesh(){
     glDeleteBuffers(1,&vbo);
 }
 void LiteAPI::DynamicMesh::reload(const float* _buffer,uint64 _vertices){
+    vertices = _vertices;
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_DYNAMIC_DRAW);

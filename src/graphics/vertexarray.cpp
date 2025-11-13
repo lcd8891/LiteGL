@@ -1,4 +1,5 @@
 #include <LiteGL/graphics/vertexarray.hpp>
+#include <memory>
 
 #define VERIT VertexArray::VertexIterator
 
@@ -69,14 +70,18 @@ namespace LiteAPI{
     }
             
     VertexArray::VertexArray(unsigned vertex_size):vertex_size(vertex_size){}
-    void VertexArray::insert(const float *_data){
-        arr.insert(arr.end(),_data,_data+vertex_size);
+    void VertexArray::insert(float* _data, unsigned vertex_count) {
+        unsigned total_floats = vertex_size * vertex_count;
+        arr.insert(arr.end(), _data, _data + total_floats);
     }
     void VertexArray::replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
         if(attribute>=vertex_size)return;
         for(int i = 0;i< vertex_count;i++){
             arr[attribute + from_vertex * vertex_size] = value;
         }
+    }
+    void VertexArray::replace(float* value,unsigned from_vertex,unsigned size){
+        std::copy(value,value + size * vertex_size,arr.begin() + from_vertex * vertex_size);
     }
     float* VertexArray::get_data(){
         return &arr[0];
@@ -96,7 +101,6 @@ namespace LiteAPI{
     VertexArray::VertexIterator VertexArray::end(){
         return VertexIterator(arr.data() + arr.size(), vertex_size);
     }
-
     VertexArray::VertexIterator VertexArray::operator[](unsigned vertex){
         return VertexIterator(arr.data() + vertex * vertex_size,vertex_size);
     }

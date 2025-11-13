@@ -64,10 +64,10 @@ int main(int argc, char **argv) {
 		Logger::initialize();
 		start();
 	}catch(const std::exception &e){
-		finalize();
 		std::string out = "ENGINE RUNTIME ERROR:\n->Reason: ";
 		out+=e.what();
 		show_error(out);
+		finalize();
 		Logger::close();
 		return 1;
 	}

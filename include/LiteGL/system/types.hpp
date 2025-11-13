@@ -28,7 +28,7 @@ struct vector3{
 	}
 };
 
-struct color{
+struct color4{
 	uint8 r;
 	uint8 g;
 	uint8 b;

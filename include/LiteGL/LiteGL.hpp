@@ -13,11 +13,14 @@
 
 #include <string>
 
+#include "system/arguments.hpp"
 #include "system/logger.hpp"
 #include "system/time.hpp"
 #include "system/types.hpp"
 #include "system/default.hpp"
 
+#include "window/window.hpp"
+#include "screen/screenmgr.hpp"
 #include "glctrl/glctrl.hpp"
 #include "buffer/buffers.hpp"
 #include "graphics/graphics.hpp"

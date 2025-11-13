@@ -1,6 +1,6 @@
 #pragma once 
 
-struct color;
+struct color4;
 
 namespace LiteAPI{
     namespace GLCtrl{
@@ -13,7 +13,7 @@ namespace LiteAPI{
             Clockwise = 0x0900,
             Counterclockwise = 0x0901
         };
-        void clear_color(color _color);
+        void clear_color(color4 _color);
         void clear(bool color_buffer = true,bool depth_buffer = false);
     }
 }

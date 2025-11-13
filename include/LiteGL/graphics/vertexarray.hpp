@@ -41,8 +41,9 @@ namespace LiteAPI{
             VertexIterator& operator-=(difference_type n);
         };
         VertexArray(unsigned vertex_size = 1);
-        void insert(const float *_data);
+        void insert(float* _data, unsigned vertex_count = 1);
         void replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
+        void replace(float* value,unsigned from_vertex,unsigned size = 1);
         float* get_data();
         void reserver(unsigned _vertices);
         void clear();

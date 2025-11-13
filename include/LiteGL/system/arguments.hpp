@@ -6,6 +6,5 @@ namespace LiteAPI{
     namespace Arguments{
         bool hasArgument(std::string _str);
         void registerFlag(const std::string &_arg,std::function<void()> _func);
-        std::string getValueFromFlag(const std::string &arg,char divider = '=');
     }
 }

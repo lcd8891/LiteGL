@@ -64,15 +64,15 @@ namespace{
     std::unordered_map<Argument,std::function<void(const std::string &_flag)>> arg_handler;
     void register_args(){ // Регистрация системных аргументов
         #ifdef _WIN32
-        arg_handler[Argument("output",'o')] = [](const std::string &_flag){
+        arg_handler[Argument("output",'o')] = [](const std::string &_value){
             enable_ascii();
         };
         #endif
-        arg_handler[Argument("fullscreen",'f')] = [](const std::string &_flag){
+        arg_handler[Argument("fullscreen",'f')] = [](const std::string &_value){
             LiteAPI::Window::setFullscreen(true);
         };
-        arg_handler[Argument("game=",0)] = [](const std::string &_flag){
-            GameLDR::loadpath = LiteAPI::Arguments::getValueFromFlag(_flag);
+        arg_handler[Argument("game=",0)] = [](const std::string &_value){
+            GameLDR::loadpath="./"+_value;
         };
     }
     bool is_argument(const std::string &_arg){ // Проверка на аргумент с -
@@ -88,13 +88,30 @@ namespace{
         }
         return long_arg;
     }
+    std::pair<std::string, std::string> parse_long_argument(const std::string& long_arg) {
+        std::string arg_name = long_arg.substr(2);
+        std::string value;
+        
+        size_t equal_pos = arg_name.find('=');
+        if (equal_pos != std::string::npos) {
+            value = arg_name.substr(equal_pos + 1);
+            arg_name = arg_name.substr(0, equal_pos);
+        }
+        
+        return {arg_name, value};
+    }
     void process_long_argument(const std::string& _arg) {
-        std::string long_arg = _arg.substr(2);
-        std::string arg_name = extract_long_arg_name(long_arg);
+        auto [arg_name, value] = parse_long_argument(_arg);
         auto it = arg_handler.find(Argument(arg_name, 0));
-        if(it != arg_handler.end()) {
-            it->second(_arg);
+        if (it != arg_handler.end()) {
+            it->second(value);
             return;
+        }
+        for (const auto& handler : arg_handler) {
+            if (handler.first.full_arg.find(arg_name) == 0) {
+                handler.second(value);
+                return;
+            }
         }
     }
     void process_short_argument(const std::string& _arg) {
@@ -120,26 +137,18 @@ namespace{
 }
 namespace LiteAPI{
     namespace Arguments{
-        bool hasArgument(std::string _str){ // Проверка на наличие аргумента
+        bool hasArgument(std::string _str){
             for(std::string &str : args){
                 if(str==_str)return true;
             }
             return false;
         }
-        void registerFlag(const std::string &_arg,std::function<void(const std::string &_flag)> _func){ // Регистрируем флаг (этап загрузки игры)
+        void registerFlag(const std::string &_arg,std::function<void(const std::string &_flag)> _func){
             auto it = flag_handler.find(_arg);
             if(it==flag_handler.end()){
                 flag_handler[_arg]=_func;
             }else{
                 it->second=_func;
-            }
-        }
-        std::string getValueFromFlag(const std::string &arg,char divider){ // Получения значения из arg=<value>
-            size_t pos = arg.find_first_of(divider);
-            if(pos==std::string::npos){
-                return "";
-            }else{
-                return arg.substr(pos+1);
             }
         }
     }

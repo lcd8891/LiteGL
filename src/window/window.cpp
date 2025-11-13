@@ -108,6 +108,7 @@ namespace PRIV_Window{
 		glfwSwapBuffers(window);
 	}
 	void finalize(){
+		if(!window)return;
 		if(!glfwWindowShouldClose(window)){
 			glfwSetWindowShouldClose(window,true);
 		}
