@@ -71,8 +71,10 @@ namespace LiteAPI{
             
     VertexArray::VertexArray(unsigned vertex_size):vertex_size(vertex_size){}
     void VertexArray::insert(float* _data, unsigned vertex_count) {
-        unsigned total_floats = vertex_size * vertex_count;
-        arr.insert(arr.end(), _data, _data + total_floats);
+        arr.insert(arr.end(), _data, _data + vertex_size * vertex_count);
+    }
+    void VertexArray::insert(float* _data, unsigned vertex_count = 1,unsigned vertex_offset){
+        arr.insert(arr.begin() + vertex_offset * vertex_size, _data, _data + vertex_size * vertex_count);
     }
     void VertexArray::replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
         if(attribute>=vertex_size)return;
@@ -82,6 +84,9 @@ namespace LiteAPI{
     }
     void VertexArray::replace(float* value,unsigned from_vertex,unsigned size){
         std::copy(value,value + size * vertex_size,arr.begin() + from_vertex * vertex_size);
+    }
+    void VertexArray::erase(unsigned vertices,unsigned offset){
+        arr.erase(arr.begin() + vertex_size * offset,arr.begin() + vertex_size * offset + vertex_size * vertices + 1);
     }
     float* VertexArray::get_data(){
         return &arr[0];

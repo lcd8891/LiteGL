@@ -40,7 +40,7 @@ void start(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
 	GameLDR::loadgame();
 	PRIV_Window::initialize();
-	system_logger->info() << "";
+	system_logger->info() << "Window and events initialized...";
 	try{
 		Logger::init_for_game();
 		PRIV::ScreenMGR::initialize();

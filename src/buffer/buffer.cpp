@@ -53,7 +53,7 @@ LiteAPI::Texture* _load_from_file(const std::string _path){
 namespace LiteAPI{
     namespace TextureBuffer{
         Texture* load_from_res(std::string _path, std::string _name){
-            Texture* texture = _load_from_file("./res/textures/"+_path);
+            Texture* texture = _load_from_file("./res/textures/"+_path+".png");
             _B_NEW(texture_map,texture)
         }
         Texture* get_texture(std::string _name){

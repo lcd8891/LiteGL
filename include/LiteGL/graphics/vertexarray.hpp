@@ -42,8 +42,10 @@ namespace LiteAPI{
         };
         VertexArray(unsigned vertex_size = 1);
         void insert(float* _data, unsigned vertex_count = 1);
+        void insert(float* _data, unsigned vertex_count = 1,unsigned vertex_offset);
         void replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
         void replace(float* value,unsigned from_vertex,unsigned size = 1);
+        void erase(unsigned vertices,unsigned offset);
         float* get_data();
         void reserver(unsigned _vertices);
         void clear();
