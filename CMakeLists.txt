@@ -15,11 +15,24 @@ find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(Freetype REQUIRED)
 
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
-add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp src/graphics/mesh.cpp src/graphics/shader.cpp src/graphics/texture.cpp src/graphics/vertexarray.cpp)
+add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp 
+                    src/graphics/mesh.cpp 
+                    src/graphics/shader.cpp 
+                    src/graphics/texture.cpp 
+                    src/graphics/vertexarray.cpp 
+                    src/graphics/fontloader.cpp)
 add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
-add_library(lite-system OBJECT src/system/logger.cpp src/system/time.cpp src/gameldr/gameldr.cpp src/system/types.cpp src/system/arguments.cpp src/system/cache.cpp)
+add_library(lite-system OBJECT src/system/logger.cpp 
+                    src/system/time.cpp 
+                    src/gameldr/gameldr.cpp 
+                    src/system/types.cpp 
+                    src/system/arguments.cpp 
+                    src/system/cache.cpp
+                    src/system/iniloader.cpp
+                    src/LiteDATA.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
 add_library(lite-defaults OBJECT src/system/default.cpp)
 add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
@@ -38,7 +51,7 @@ target_include_directories(lite-api
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw)
+target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw Freetype::Freetype)
 
 if(WIN32)
 add_executable(${PROJECT_NAME} WIN32 src/LiteGL.cpp)
@@ -47,7 +60,7 @@ add_executable(${PROJECT_NAME} src/LiteGL.cpp)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE lite-api)
 
-include_directories(${CMAKE_HOME_DIRECTORY}/include)
+include_directories(${CMAKE_HOME_DIRECTORY}/include ${FREETYPE_INCLUDE_DIRS})
 
 install(FILES 
     ${CMAKE_BINARY_DIR}/lite-api_export.h

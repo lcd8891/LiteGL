@@ -1,4 +1,5 @@
 #include <LiteGL/graphics/mesh.hpp>
+#include <LiteGL/graphics/vertexarray.hpp>
 #include <GL/glew.h>
 
 LiteAPI::Mesh::Mesh(const float* _buffer,uint64 _vertices,const int* _attr):vertices(_vertices){
@@ -23,23 +24,48 @@ LiteAPI::Mesh::Mesh(const float* _buffer,uint64 _vertices,const int* _attr):vert
 
 	glBindVertexArray(0);
 }
+LiteAPI::Mesh::Mesh(VertexArray* array, const int* _attr){
+    vertex_size = array->getVertexSize();
+    const float* _buffer = array->getData();uint64 _vertices = array->getVertexCount();
+    glGenVertexArrays(1,&vao);
+    glGenBuffers(1,&vbo);
+
+    glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*_vertices, _buffer,GL_STATIC_DRAW);
+
+    int offset = 0;
+    for(int i = 0;_attr[i];i++){
+        int size = _attr[i];
+	    glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, vertex_size*sizeof(float), (GLvoid*)(offset*sizeof(float)));
+	    glEnableVertexAttribArray(i);
+        offset += _attr[i];
+    }
+
+	glBindVertexArray(0);
+}
 LiteAPI::Mesh::~Mesh(){
     glDeleteVertexArrays(1,&vao);
     glDeleteBuffers(1,&vbo);
 }
 void LiteAPI::Mesh::reload(const float* _buffer,uint64 _vertices){
-    vertices = _vertices;
+	this->vertices = _vertices;
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_STATIC_DRAW);
-	this->vertices = _vertices;
+}
+void LiteAPI::Mesh::reload(VertexArray* array){
+	this->vertices = array->getVertexCount();
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * vertices, array->getData(), GL_STATIC_DRAW);
 }
 void LiteAPI::Mesh::draw(Primitive _primitive){
     glBindVertexArray(vao);
     glDrawArrays((unsigned int)(_primitive),0,vertices);
     glBindVertexArray(0);
 }
-void LiteAPI::Mesh::draw_part(Primitive _primitive,uint64 _vertices,uint64 _offset){
+void LiteAPI::Mesh::drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset){
     glBindVertexArray(vao);
     glDrawArrays((unsigned int)(_primitive),_offset,_vertices);
     glBindVertexArray(0);
@@ -68,29 +94,61 @@ LiteAPI::DynamicMesh::DynamicMesh(const float* _buffer,uint64 _vertices,const in
 
 	glBindVertexArray(0);
 }
+LiteAPI::DynamicMesh::DynamicMesh(VertexArray* array, const int* _attr){
+    vertex_size = array->getVertexSize();
+    const float* _buffer = array->getData();uint64 _vertices = array->getVertexCount();
+    
+    glGenVertexArrays(1,&vao);
+    glGenBuffers(1,&vbo);
+
+    glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*_vertices, _buffer,GL_DYNAMIC_DRAW);
+
+    int offset = 0;
+    for(int i = 0;_attr[i];i++){
+        int size = _attr[i];
+	    glVertexAttribPointer(i, size, GL_FLOAT, GL_FALSE, vertex_size*sizeof(float), (GLvoid*)(offset*sizeof(float)));
+	    glEnableVertexAttribArray(i);
+        offset += _attr[i];
+    }
+
+	glBindVertexArray(0);
+}
 LiteAPI::DynamicMesh::~DynamicMesh(){
     glDeleteVertexArrays(1,&vao);
     glDeleteBuffers(1,&vbo);
 }
 void LiteAPI::DynamicMesh::reload(const float* _buffer,uint64 _vertices){
-    vertices = _vertices;
+    this->vertices = _vertices;
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_DYNAMIC_DRAW);
-	this->vertices = _vertices;
 }
-void LiteAPI::DynamicMesh::reload_part(const float* _buffer,uint64 _vertices,uint64 _offset){
+void LiteAPI::DynamicMesh::reload(VertexArray* array){
+    this->vertices = array->getVertexCount();
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * vertices, array->getData(), GL_DYNAMIC_DRAW);
+}
+void LiteAPI::DynamicMesh::reloadPart(const float* _buffer,uint64 _vertices,uint64 _offset){
+	this->vertices = _vertices;
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _offset, _vertices * vertex_size * sizeof(float), _buffer);
-	this->vertices = _vertices;
+}
+void LiteAPI::DynamicMesh::reloadPart(VertexArray* array,uint64 _offset){
+	this->vertices = array->getVertexCount();
+	glBindVertexArray(vao);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _offset, vertices * vertex_size * sizeof(float), array->getData());
 }
 void LiteAPI::DynamicMesh::draw(Primitive _primitive){
     glBindVertexArray(vao);
     glDrawArrays((unsigned int)(_primitive),0,vertices);
     glBindVertexArray(0);
 }
-void LiteAPI::DynamicMesh::draw_part(Primitive _primitive,uint64 _vertices,uint64 _offset){
+void LiteAPI::DynamicMesh::drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset){
     glBindVertexArray(vao);
     glDrawArrays((unsigned int)(_primitive),_offset,_vertices);
     glBindVertexArray(0);

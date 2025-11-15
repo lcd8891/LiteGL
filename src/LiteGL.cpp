@@ -10,6 +10,8 @@
 #include "system/priv_logger.hpp"
 #include "window/exception.hpp"
 #include "system/signals.hpp"
+#include "graphics/fontloader.hpp"
+#include "LiteData.hpp"
 
 namespace PRIV{
 	namespace ScreenMGR{
@@ -21,6 +23,7 @@ namespace PRIV{
 void finalize(){
 	system_logger->info() << "finalizing engine...";
 	PRIV::ScreenMGR::finalize();
+	PRIV::FontLoader::close();
 	PRIV_Window::finalize();
 	LiteAPI::ShaderBuffer::delete_all_shaders();
 	LiteAPI::TextureBuffer::delete_all_textures();
@@ -35,15 +38,23 @@ void loop(){
 		PRIV_Window::update();
 	}
 }
-
-void start(){
+void static_initialize(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
 	GameLDR::loadgame();
 	PRIV_Window::initialize();
 	system_logger->info() << "Window and events initialized...";
+	PRIV::ScreenMGR::initialize();
+	LiteDATA::main_config = LiteAPI::INILoader::loadFromRes("engine");
+	system_logger->info() << "Engine config loaded...";
+	PRIV::FontLoader::loadfrom("./res/font.ttf");
+	system_logger->info() << "Font initialized...";
+}
+
+void start(){
 	try{
+		static_initialize();
 		Logger::init_for_game();
-		PRIV::ScreenMGR::initialize();
+		system_logger->info() << "Created game logger...";
 		LiteGame::on_initialize();
 		PRIV::Args::process_flags();
 		system_logger->info() << "Initialize successfully!";

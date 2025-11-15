@@ -3,6 +3,7 @@ using uint64 = unsigned long long;
 using uint32 = unsigned int;
 
 namespace LiteAPI{
+    class VertexArray;
     enum class Primitive{
         Points = 0x0,
         Lines = 0x1,
@@ -19,10 +20,12 @@ namespace LiteAPI{
         uint64 vertex_size;
         public:
         Mesh(const float* _buffer,uint64 _vertices,const int* _attr);
+        Mesh(VertexArray* array, const int* _attr);
         ~Mesh();
         void reload(const float* _buffer,uint64 _vertices);
+        void reload(VertexArray* array);
         void draw(Primitive _primitive);
-        void draw_part(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
+        void drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
     };
 
     class DynamicMesh{
@@ -33,10 +36,13 @@ namespace LiteAPI{
         uint64 vertex_size;
         public:
         DynamicMesh(const float* _buffer,uint64 _vertices,const int* _attr);
+        DynamicMesh(VertexArray* array, const int* _attr);
         ~DynamicMesh();
         void reload(const float* _buffer,uint64 _vertices);
-        void reload_part(const float* _buffer,uint64 _vertices,uint64 _offset = 0);
+        void reload(VertexArray* array);
+        void reloadPart(const float* _buffer,uint64 _vertices,uint64 _offset = 0);
+        void reloadPart(VertexArray* array,uint64 _offset);
         void draw(Primitive _primitive);
-        void draw_part(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
+        void drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
     };
 }

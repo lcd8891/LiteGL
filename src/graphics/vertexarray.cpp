@@ -70,10 +70,13 @@ namespace LiteAPI{
     }
             
     VertexArray::VertexArray(unsigned vertex_size):vertex_size(vertex_size){}
+    unsigned VertexArray::getVertexSize(){
+        return vertex_size;
+    }
     void VertexArray::insert(float* _data, unsigned vertex_count) {
         arr.insert(arr.end(), _data, _data + vertex_size * vertex_count);
     }
-    void VertexArray::insert(float* _data, unsigned vertex_count = 1,unsigned vertex_offset){
+    void VertexArray::insert(float* _data, unsigned vertex_count,unsigned vertex_offset){
         arr.insert(arr.begin() + vertex_offset * vertex_size, _data, _data + vertex_size * vertex_count);
     }
     void VertexArray::replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
@@ -88,7 +91,7 @@ namespace LiteAPI{
     void VertexArray::erase(unsigned vertices,unsigned offset){
         arr.erase(arr.begin() + vertex_size * offset,arr.begin() + vertex_size * offset + vertex_size * vertices + 1);
     }
-    float* VertexArray::get_data(){
+    float* VertexArray::getData(){
         return &arr[0];
     }
     void VertexArray::reserver(unsigned _vertices){
@@ -97,7 +100,7 @@ namespace LiteAPI{
     void VertexArray::clear(){
         arr.clear();
     }
-    unsigned VertexArray::get_vertex_count(){
+    unsigned VertexArray::getVertexCount(){
         return arr.size() / vertex_size;
     }
     VertexArray::VertexIterator VertexArray::begin(){
