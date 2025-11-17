@@ -9,7 +9,7 @@ namespace LiteAPI{
         glDeleteTextures(1,&id);
     }
 
-    void Texture::use(){
+    void Texture::use() const {
         glBindTexture(GL_TEXTURE_2D,id);
     }
 }

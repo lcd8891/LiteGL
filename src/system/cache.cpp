@@ -16,13 +16,9 @@ namespace Cache{
         
     }
     void check_directories(){
-        
-    }
-    void cache_font(){
-
-    }
-    void load_font(){
-        
+        if(!std::filesystem::exists(".cache/")){
+            std::filesystem::create_directories(".cache");
+        }
     }
     
     void cache_shaders(){
@@ -39,7 +35,7 @@ namespace Cache{
         char* data = new char[size];
         GLenum format = 0;
         glGetProgramBinary(id,size,nullptr,&format,data);
-        std::ofstream file("./.cache/shaders"+genHash(name)+".bin",std::ios::binary);
+        std::ofstream file(".cache/"+genHash(name)+".bin",std::ios::binary);
         if(!file.is_open()){
             system_logger->error() << "Coudn't save shader " << name;
         }
@@ -49,7 +45,7 @@ namespace Cache{
         file.close();
     }
     LiteAPI::Shader* load_chached_shader(std::string name){
-        std::ifstream file(".lite-cache/engine/"+genHash(name)+".bin",std::ios::binary);
+        std::ifstream file(".cache/"+genHash(name)+".bin",std::ios::binary);
         if(!file.is_open()){
             system_logger->error() << "Couldn't open cached shader: " << name;
             return nullptr;
@@ -65,7 +61,7 @@ namespace Cache{
         int status = 0;
         glGetProgramiv(id,GL_LINK_STATUS,&status);
         if(status != 1){
-            system_logger->info() << "Couldn't load cached shader: " << name;
+            system_logger->warn() << "Couldn't load cached shader: " << name;
             glDeleteProgram(id);
             return nullptr;
         }

@@ -16,9 +16,9 @@ namespace PRIV{
     };
 
     namespace FontLoader{
-        extern const LiteAPI::Texture *glyph_atlas_ptr;
+        extern LiteAPI::Texture *glyph_atlas_ptr;
         void loadfrom(std::string _path);
-        const GlyphMetaData& getGlyphMetaData(unsigned data);
+        const GlyphMetaData& getGlyphMetaData(wchar_t character);
         void close();
     }
 }

@@ -32,5 +32,11 @@ namespace LiteAPI{
         void setDepthBuffer(bool _enable){
             GL_ON_OFF(GL_DEPTH_TEST);
         }
+        void setBlend(bool _enable){
+            GL_ON_OFF(GL_BLEND);
+        }
+        void blendFunc(BlendOption option){
+            glBlendFunc(GL_SRC_ALPHA,(int)option);
+        }
     }
 }

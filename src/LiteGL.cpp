@@ -6,6 +6,7 @@
 #include "gameldr/gameldr.hpp"
 #include "window/window.hpp"
 
+#include "system/priv_cache.hpp"
 #include "system/priv_arguements.hpp"
 #include "system/priv_logger.hpp"
 #include "window/exception.hpp"
@@ -40,19 +41,20 @@ void loop(){
 }
 void static_initialize(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
+	Cache::check_directories();
 	GameLDR::loadgame();
 	PRIV_Window::initialize();
 	system_logger->info() << "Window and events initialized...";
 	PRIV::ScreenMGR::initialize();
 	LiteDATA::main_config = LiteAPI::INILoader::loadFromRes("engine");
 	system_logger->info() << "Engine config loaded...";
-	PRIV::FontLoader::loadfrom("./res/font.ttf");
+	PRIV::FontLoader::loadfrom("./res/font");
 	system_logger->info() << "Font initialized...";
 }
 
 void start(){
+	static_initialize();
 	try{
-		static_initialize();
 		Logger::init_for_game();
 		system_logger->info() << "Created game logger...";
 		LiteGame::on_initialize();

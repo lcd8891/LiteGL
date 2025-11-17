@@ -5,30 +5,36 @@
 #include <LiteGL/graphics/vertexarray.hpp>
 #include <LiteGL/graphics/shaderconstructor.hpp>
 #include <LiteGL/graphics/mesh.hpp>
-#define LOGGER_GROUP "screenmgr"
-#include "../system/priv_logger.hpp"
+#include <LiteGL/graphics/texture.hpp>
+#include <LiteGL/buffer/tb.hpp>
 #include <LiteGL/buffer/scrbuffer.hpp>
+#include "../system/priv_logger.hpp"
 #include <glm/ext.hpp>
 #include "../system/priv_cache.hpp"
 #include "./screen_shaders.hpp"
 #include <vector>
 #include <set>
 #include <memory>
+#include "../graphics/fontloader.hpp"
 
-#define _ITEM_MESH_INIT_COLOR float r(color.r),g(color.g),b(color.b),a(color.a);
+#define _ITEM_MESH_INIT_COLOR float r((float)color.r / 255),g((float)color.g / 255),b((float)color.b / 255),a((float)color.a / 255);
 #define _ITEM_MESH_INIT_POSITION float x1(position.x),x2(position.x+size.x),y1(position.y),y2(position.y+size.y);
 #define _ITEM_MESH_INIT_UV float u1(uv[0]),v1(uv[1]),u2(uv[2]),v2(uv[3]);
+
+using PRIV::GlyphMetaData;
 
 namespace{
     struct ScreenItemRenderInfo{
         unsigned vertex_count{0},vertex_offset{0};
         LiteAPI::ScreenItem *item;
         LiteAPI::Primitive primitive;
-        const bool *modified;
+        bool *modified;
+        LiteAPI::Shader *shadertype;
+        std::string texture_key;
     };
-    LiteAPI::Shader *nontex_shader,*tex_shader;
+    LiteAPI::Shader *nontex_shader,*tex_shader,*text_shader;
     LiteAPI::Screen* current;
-    void recompile_shaders(){
+    void xuirecompile_shaders(){
         system_logger->info() << ("Recompiling shader");
         LiteAPI::ShaderConstructor ct;
         ct.addFromString(ENGINE_RES::rect_code_frag,LiteAPI::ShaderType::Fragment);
@@ -36,6 +42,16 @@ namespace{
         nontex_shader = ct.create();
         ct.clear();
         Cache::cache_shader(nontex_shader,"nontex_shader");
+        ct.addFromString(ENGINE_RES::tex_code_frag,LiteAPI::ShaderType::Fragment);
+        ct.addFromString(ENGINE_RES::tex_code_vert,LiteAPI::ShaderType::Vertex);
+        tex_shader = ct.create();
+        ct.clear();
+        Cache::cache_shader(tex_shader,"tex_shader");
+        ct.addFromString(ENGINE_RES::text_code_frag,LiteAPI::ShaderType::Fragment);
+        ct.addFromString(ENGINE_RES::text_code_vert,LiteAPI::ShaderType::Vertex);
+        text_shader = ct.create();
+        ct.clear();
+        Cache::cache_shader(text_shader,"text_shader");
     }
     glm::mat4 screenView;
 }
@@ -54,7 +70,7 @@ namespace LiteAPI{
     color4 ScreenItem::getColor(){
         return color;
     }
-    const bool& ScreenItem::getModified(){
+    bool& ScreenItem::getModified(){
         return modified;
     }
     void ScreenItem::setColor(color4 _a){
@@ -100,7 +116,7 @@ namespace LiteAPI{
         return arr;
     }
 
-    TextureItem::TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,vector2<float> uv1,vector2<float> uv2):ScreenItem(a,c),size(b),uv(new float[4]){
+    TextureItem::TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2):ScreenItem(a,c),size(b),uv(new float[4]),texture_key(_tex_key){
         uv[0] = uv1.x;
         uv[1] = uv1.y;
         uv[2] = uv2.x;
@@ -121,7 +137,7 @@ namespace LiteAPI{
             x2, y2, r, g, b, a,u2,v2,
             x1, y2, r, g, b, a,u1,v2
         };
-        VertexArray *arr = new VertexArray(6);
+        VertexArray *arr = new VertexArray(8);
         arr->insert(vertices,6);
         return arr;
     }
@@ -140,6 +156,57 @@ namespace LiteAPI{
     void TextureItem::setSize(vector2<unsigned> a){
         size = a;
     }
+    std::string TextureItem::getTextureKey(){
+        return texture_key;
+    }
+    void TextureItem::setTextureKey(std::string _key){
+        texture_key = _key;
+    }
+    
+    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c):ScreenItem(a,b),str(c),scale(1){}
+    VertexArray* TextItem::getMesh(){
+        _ITEM_MESH_INIT_COLOR
+        VertexArray *arr = new VertexArray(8);
+        float xpos = 0;
+        for(wchar_t &ch : str){
+            GlyphMetaData data = PRIV::FontLoader::getGlyphMetaData(ch);
+            xpos += data.advance * scale;
+            float x1 = position.x + xpos + data.bearing.x * scale;
+            float y1 = position.y - (data.bearing.y - data.size.y) * scale;
+            float x2 = x1 + data.size.x * scale;
+            float y2 = y1 + data.size.y * scale;
+            
+            float u1 = data.texCoord.x;
+            float v1 = data.texCoord.y;
+            float u2 = data.texCoord.x + data.texSize.x;
+            float v2 = data.texCoord.y + data.texSize.y;
+
+            float vertices[] = {
+                x1,y1,r,g,b,a,u1,v1,
+                x2,y1,r,g,b,a,u2,v1,
+                x1,y2,r,g,b,a,u1,v2,
+                x2,y1,r,g,b,a,u2,v1,
+                x2,y2,r,g,b,a,u2,v2,
+                x1,y2,r,g,b,a,u1,v2
+            };
+            arr->insert(vertices,6);
+        }
+        return arr;
+    }
+    std::wstring TextItem::getString(){
+        return str;
+    }
+    void TextItem::setString(std::wstring str){
+        this->str = str;
+        modified=true;
+    }
+    float TextItem::getTextScale(){
+        return scale;
+    }
+    void TextItem::setTextScale(float scale){
+        this->scale = scale;
+        modified = true;
+    }
 
 
     Screen::~Screen(){
@@ -151,7 +218,6 @@ namespace LiteAPI{
     void Screen::operator()(){
         ScreenData::nontext_arr->clear();
         ScreenData::text_arr->clear();
-
         ScreenData::screen_item_render_info.clear();
 
         for(auto &it : this->items){
@@ -163,34 +229,78 @@ namespace LiteAPI{
             data.primitive = item->getPrimitive();
             data.vertex_count = vertices->getVertexCount();
             data.modified = &item->getModified();
-            if(item->isTextured()){
-                data.vertex_offset = ScreenData::text_arr->getVertexCount();
-                ScreenData::screen_item_render_info[id] = data;
-                ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
-            }else{
-                data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
-                ScreenData::screen_item_render_info[id] = data;
-                ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
+            item->modified = false;
+            switch(item->getType()){
+                case ScreenItemType::Rectangle:
+                    data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
+                    data.shadertype=nontex_shader;
+                    data.texture_key="";
+                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    break;
+                case ScreenItemType::Line:
+                    data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
+                    data.shadertype=nontex_shader;
+                    data.texture_key="";
+                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    break;
+                case ScreenItemType::Texture:
+                    data.vertex_offset = ScreenData::text_arr->getVertexCount();
+                    data.shadertype=tex_shader;
+                    {
+                        TextureItem *tex_item = static_cast<TextureItem*>(item);
+                        data.texture_key=tex_item->getTextureKey();
+                    }
+                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    break;
+                case ScreenItemType::Text:
+                    data.vertex_offset = ScreenData::text_arr->getVertexCount();
+                    data.shadertype=text_shader;
+                    data.texture_key="__font__";
+                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    break;
             }
             delete vertices;
         }
 
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
+        ScreenData::text_mesh->reload(ScreenData::text_arr);
     }
 
     void Screen::update(){
         for(auto &it : ScreenData::screen_item_render_info){
-            const ScreenItemRenderInfo &info = it.second;
-            if(!info.modified)continue;
+            ScreenItemRenderInfo &info = it.second;
+            if(!*info.modified)continue;
             VertexArray* vertices = info.item->getMesh();
-            if(info.item->isTextured()){
-                ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-            }else{
-                ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+            int total_offset_nontex = 0,total_offset_tex = 0;
+            *info.modified = false;
+            switch(info.item->getType()){
+                case ScreenItemType::Text:
+                    info.vertex_offset+=total_offset_tex;
+                    ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
+                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    info.vertex_count=vertices->getVertexCount();
+                    total_offset_tex=vertices->getVertexCount()-info.vertex_count;
+                    break;
+                case ScreenItemType::Rectangle:
+                    info.vertex_offset+=total_offset_nontex;
+                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                case ScreenItemType::Line:
+                    info.vertex_offset+=total_offset_nontex;
+                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                case ScreenItemType::Texture:
+                    info.vertex_offset+=total_offset_tex;
+                    ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
             }
         }
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
-        
+        ScreenData::text_mesh->reload(ScreenData::text_arr);
     }
 
     void Screen::add_item(std::string _name,ScreenItem *_item){
@@ -213,11 +323,19 @@ namespace LiteAPI{
             current->update();
         }
         void render_screen(){
-            nontex_shader->bind();
-            nontex_shader->uniformMatrix("view",::screenView);
             for(auto it : ScreenData::screen_item_render_info){
                 const ScreenItemRenderInfo &info = it.second;
-                ScreenData::nontext_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
+                info.shadertype->bind();
+                info.shadertype->uniformMatrix("view",::screenView);
+                if(info.texture_key.empty()){
+                    ScreenData::nontext_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
+                }else if(info.texture_key=="__font__"){
+                    PRIV::FontLoader::glyph_atlas_ptr->use();
+                    ScreenData::text_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
+                }else{
+                    TextureBuffer::get_texture(info.texture_key)->use();
+                    ScreenData::text_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
+                }
             }
         }
     }
@@ -231,13 +349,15 @@ namespace PRIV{
         }
         void initialize(){
             ScreenData::nontext_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,0});
-            ScreenData::text_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,2,4,0});
+            ScreenData::text_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,2,0});
             ScreenData::nontext_arr = new LiteAPI::VertexArray(6);
             ScreenData::text_arr = new LiteAPI::VertexArray(8);
             system_logger->info() << "ScreenMGR initializing...";
             nontex_shader = Cache::load_chached_shader("nontex_shader");
-            if(!(nontex_shader)){
-                recompile_shaders();
+            tex_shader = Cache::load_chached_shader("tex_shader");
+            text_shader = Cache::load_chached_shader("text_shader");
+            if(!(nontex_shader) || !(tex_shader) || !(text_shader)){
+                xuirecompile_shaders();
             }
             system_logger->info() << "ScreenMGR initalized!";
         }

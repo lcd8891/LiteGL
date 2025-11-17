@@ -7,22 +7,25 @@ struct vector2;
 struct color4;
 
 namespace LiteAPI{
+    enum class ScreenItemType{
+        Rectangle,Line,Texture,Text
+    };
     class ScreenItem{
         protected:
-        bool modified = true;
         vector2<int> position;
         color4 color;
 
         public:
+        bool modified = false;
         ScreenItem(vector2<int> a, color4 c);
 
         virtual VertexArray* getMesh() = 0;
-        virtual bool isTextured() = 0;
+        virtual ScreenItemType getType() = 0;
         virtual Primitive getPrimitive() = 0;
 
         vector2<int> getPosition();
         color4 getColor();
-        const bool& getModified();
+        bool& getModified();
 
         void setColor(color4 _a);
         void setPosition(vector2<int> _a);
@@ -34,7 +37,7 @@ namespace LiteAPI{
         RectangleItem(vector2<int> a,vector2<unsigned> b,color4 c);
 
         VertexArray* getMesh() override; 
-        bool isTextured() override {return false;};
+        ScreenItemType getType() override {return ScreenItemType::Rectangle;};
         Primitive getPrimitive() override {return Primitive::Triangles;};
 
         vector2<unsigned> getSize();
@@ -47,7 +50,7 @@ namespace LiteAPI{
         LineItem(vector2<int> a,vector2<int> b,color4 c);
 
         VertexArray* getMesh() override; 
-        bool isTextured() override {return false;};
+        ScreenItemType getType() override {return ScreenItemType::Line;};
         Primitive getPrimitive() override {return Primitive::Lines;};
 
         vector2<int> getPosition2();
@@ -56,17 +59,35 @@ namespace LiteAPI{
     class TextureItem : public ScreenItem{
         float *uv;
         vector2<unsigned> size;
+        std::string texture_key;
         public:
-        TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,vector2<float> uv1,vector2<float> uv2);
+        TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2);
         ~TextureItem();
 
         VertexArray* getMesh() override;
-        bool isTextured() override {return true;}
+        ScreenItemType getType() override {return ScreenItemType::Texture;};
         Primitive getPrimitive() override {return Primitive::Triangles;}
 
         const float* getUV();
         void setUV(float u1,float v1,float u2,float v2);
         vector2<unsigned> getSize();
         void setSize(vector2<unsigned> a);
+        std::string getTextureKey();
+        void setTextureKey(std::string _key);
+    };
+    class TextItem : public ScreenItem{
+        std::wstring str;
+        float scale;
+        public:
+        TextItem(vector2<int> a,color4 b,std::wstring c);
+        
+        VertexArray* getMesh() override;
+        ScreenItemType getType() override {return ScreenItemType::Text;};
+        Primitive getPrimitive() override {return Primitive::Triangles;}
+
+        std::wstring getString();
+        void setString(std::wstring str);
+        float getTextScale();
+        void setTextScale(float scale);
     };
 }

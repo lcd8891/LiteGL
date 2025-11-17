@@ -13,7 +13,14 @@ namespace LiteAPI{
             Clockwise = 0x0900,
             Counterclockwise = 0x0901
         };
+        enum class BlendOption{
+            Zero=0,
+            One=1,
+            OneMinusSrcAlpha=0x0303
+        };
         void clear_color(color4 _color);
         void clear(bool color_buffer = true,bool depth_buffer = false);
+        void setBlend(bool _enable);
+        void blendFunc(BlendOption option);
     }
 }

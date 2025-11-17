@@ -14,6 +14,6 @@ namespace LiteAPI{
         Texture(void *_buffer,size_t _buffer_size);
         ~Texture();
 
-        void use();
+        void use() const;
     };
 }

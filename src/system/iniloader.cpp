@@ -10,6 +10,9 @@ namespace{
         size_t end = str.find_last_not_of(ws);
         str = (start == std::string::npos) ? "" : str.substr(start, end - start + 1);
     }
+    void remove_carriage_return(std::string &str) {
+        str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    }
 }
 
 namespace LiteAPI{
@@ -42,6 +45,7 @@ namespace LiteAPI{
         std::string line,section,sectiondata;
         while(std::getline(ss,line)){
             if(line.empty())continue;
+            remove_carriage_return(line);
             if(line[0]=='[' && line.back() == ']'){
                 if(!sectiondata.empty()){
                     sections[section] = INISection(sectiondata);

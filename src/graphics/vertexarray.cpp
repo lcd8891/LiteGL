@@ -92,7 +92,7 @@ namespace LiteAPI{
         arr.erase(arr.begin() + vertex_size * offset,arr.begin() + vertex_size * offset + vertex_size * vertices + 1);
     }
     float* VertexArray::getData(){
-        return &arr[0];
+        return arr.data();
     }
     void VertexArray::reserver(unsigned _vertices){
         arr.reserve(_vertices*vertex_size);

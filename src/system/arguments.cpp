@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <LiteGL/window/window.hpp>
 #include "../gameldr/gameldr.hpp"
+#include <filesystem>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -73,6 +74,9 @@ namespace{
         };
         arg_handler[Argument("game=",0)] = [](const std::string &_value){
             GameLDR::loadpath="./"+_value;
+        };
+        arg_handler[Argument("reload",'r')] = [](const std::string &_value){
+            std::filesystem::remove(".cache");
         };
     }
     bool is_argument(const std::string &_arg){ // Проверка на аргумент с -
