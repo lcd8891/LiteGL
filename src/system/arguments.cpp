@@ -163,7 +163,6 @@ namespace PRIV{
         void hold_console(){ // Удержание консоли
             if(GetConsoleWindow()){
                 std::cout << "\n\nPress Enter to exit..." << std::endl;
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                 std::cin.get();
             }
         }

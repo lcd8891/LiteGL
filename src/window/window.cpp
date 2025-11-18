@@ -16,13 +16,18 @@ namespace PRIV{
 	}
 }
 
-GLFWwindow* window;
-uint32 *_frames;
-bool *_keys,_focused,__fullscreen;
-uint32 	_current;
-vector2<int16> _mouse_pos,_mouse_delta; 
-int8 _mwheel_delta;
-uint32 _char_input;
+namespace{
+	GLFWwindow* window;
+	uint32 *_frames;
+	bool *_keys,_focused,__fullscreen;
+	uint32 	_current;
+	vector2<int16> _mouse_pos,_mouse_delta; 
+	int8 _mwheel_delta;
+	uint32 _char_input;
+	uint16 _fpsframe(0);
+	uint16 _fps(0);
+	double _prevTime(0);
+}
 
 namespace PRIV_Window{
 	vector2<uint16> window_size;
@@ -100,12 +105,23 @@ namespace PRIV_Window{
 		glfwSetWindowFocusCallback(window,[](GLFWwindow *window,int focused){
 			_focused = focused;
 		});
+		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
+		_fps = glfwGetVideoMode(monitor)->refreshRate;
+		_prevTime = glfwGetTime();
 	}
 	bool isClosed(){
 		return glfwWindowShouldClose(window);
 	}
 	void update(){
 		glfwSwapBuffers(window);
+		double current = glfwGetTime();
+		if(current - _prevTime >= 1){
+			_fps=_fpsframe;
+			_fpsframe=0;
+			_prevTime=current;
+		}else{
+			_fpsframe++;
+		}
 	}
 	void finalize(){
 		if(!window)return;
@@ -114,8 +130,8 @@ namespace PRIV_Window{
 		}
 		glfwDestroyWindow(window);
 		glfwTerminate();
-		delete _frames;
-		delete _keys;
+		delete[] _frames;
+		delete[] _keys;
 	}
 	void pollEvents(){
         _mouse_delta = {0,0};
@@ -190,6 +206,9 @@ namespace LiteAPI{
 		}
 		void setAttribute(LiteAPI::WindowAttribute _attr,int _value){
 			glfwSetWindowAttrib(window,(int)_attr,_value);
+		}
+		uint16 getFPS(){
+			return _fps;
 		}
 	}
 	namespace Events{

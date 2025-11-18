@@ -70,9 +70,7 @@ namespace GameLDR{
     }
     void close(){
         if(!handle)return;
-        #ifdef WIN32
-        
-        #else
+        #ifndef _WIN32
         dlclose(handle);
         #endif
     }

@@ -170,9 +170,8 @@ namespace LiteAPI{
         float xpos = 0;
         for(wchar_t &ch : str){
             GlyphMetaData data = PRIV::FontLoader::getGlyphMetaData(ch);
-            xpos += data.advance * scale;
-            float x1 = position.x + xpos + data.bearing.x * scale;
-            float y1 = position.y - (data.bearing.y - data.size.y) * scale;
+            float x1 = position.x + xpos + data.bearing.x;
+            float y1 = position.y + (*PRIV::FontLoader::character_size_ptr - data.bearing.y) * scale;
             float x2 = x1 + data.size.x * scale;
             float y2 = y1 + data.size.y * scale;
             
@@ -190,6 +189,7 @@ namespace LiteAPI{
                 x1,y2,r,g,b,a,u1,v2
             };
             arr->insert(vertices,6);
+            xpos += data.advance * scale;
         }
         return arr;
     }
@@ -278,12 +278,18 @@ namespace LiteAPI{
             int total_offset_nontex = 0,total_offset_tex = 0;
             *info.modified = false;
             switch(info.item->getType()){
-                case ScreenItemType::Text:
-                    info.vertex_offset+=total_offset_tex;
-                    ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
-                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
-                    info.vertex_count=vertices->getVertexCount();
-                    total_offset_tex=vertices->getVertexCount()-info.vertex_count;
+                case ScreenItemType::Text:{
+                    if(info.vertex_count==vertices->getVertexCount()){
+                        info.vertex_offset+=total_offset_tex;
+                        ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    }else{
+                        info.vertex_offset+=total_offset_tex;
+                        ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
+                        ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount(),info.vertex_offset);
+                        total_offset_tex=vertices->getVertexCount()-info.vertex_count;
+                        info.vertex_count=vertices->getVertexCount();
+                    }
+                }
                     break;
                 case ScreenItemType::Rectangle:
                     info.vertex_offset+=total_offset_nontex;

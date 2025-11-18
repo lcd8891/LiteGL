@@ -147,6 +147,7 @@ namespace LiteAPI{
         void setSize(vector2<uint16> _size);
         vector2<uint16> getScreenSize();
         vector2<uint16> getSize();
+        uint16 getFPS();
     }
     namespace Events{
         const vector2<int16>& getMousePosition();
