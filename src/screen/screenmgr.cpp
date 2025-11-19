@@ -34,7 +34,7 @@ namespace{
         std::string texture_key;
     };
     LiteAPI::Shader *nontex_shader,*tex_shader,*text_shader;
-    LiteAPI::Screen* current;
+    LiteAPI::Screen* current = nullptr;
     void xuirecompile_shaders(){
         system_logger->info() << ("Recompiling shader");
         LiteAPI::ShaderConstructor ct;
@@ -401,6 +401,14 @@ namespace PRIV{
             glm::mat4 mat = glm::ortho(0.f,(float)window_size.x,(float)window_size.y,0.f);
             screenView = mat;
             current->updateRelatived();
+        }
+        void recalc_screenView_noupdate(){
+            window_size = LiteAPI::Window::getSize();
+            glm::mat4 mat = glm::ortho(0.f,(float)window_size.x,(float)window_size.y,0.f);
+            screenView = mat;
+        }
+        LiteAPI::Screen* get_current(){
+            return current;
         }
         void initialize(){
             ScreenData::nontext_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,0});

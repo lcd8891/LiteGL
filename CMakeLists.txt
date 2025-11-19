@@ -34,7 +34,6 @@ add_library(lite-system OBJECT src/system/logger.cpp
                     src/system/iniloader.cpp
                     src/LiteDATA.cpp)
 add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
-add_library(lite-defaults OBJECT src/system/default.cpp)
 add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
 
 add_library(lite-api SHARED 
@@ -43,7 +42,6 @@ add_library(lite-api SHARED
     $<TARGET_OBJECTS:lite-window>
     $<TARGET_OBJECTS:lite-system>
     $<TARGET_OBJECTS:lite-glctrl>
-    $<TARGET_OBJECTS:lite-defaults>
     $<TARGET_OBJECTS:lite-screen>
 )
 target_include_directories(lite-api

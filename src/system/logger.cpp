@@ -63,13 +63,13 @@ namespace LiteAPI{
         ss << ":" << std::setw(2) << +t.minute;
         ss << ":" << std::setw(2) << +t.second << "]";
         
-        ss << " (" << _namespace << "|";
+        ss << " ( " << _namespace << " | ";
         if (!color.empty()) {
             ss << color << level << "\e[0m";
         } else {
             ss << level;
         }
-        ss << ") " << message;
+        ss << " ) " << message;
         
         std::string log_entry = ss.str();
         

@@ -33,15 +33,15 @@ namespace Cache{
         int size;
         glGetProgramiv(id,GL_PROGRAM_BINARY_LENGTH,&size);
         char* data = new char[size];
-        GLenum format = 0;
+        unsigned format = 0;
         glGetProgramBinary(id,size,nullptr,&format,data);
         std::ofstream file(".cache/"+genHash(name)+".bin",std::ios::binary);
         if(!file.is_open()){
             system_logger->error() << "Coudn't save shader " << name;
         }
-        file.write(TO_CHAR(size),sizeof(size_t));
+        file.write(TO_CHAR(size),sizeof(int));
+        file.write(TO_CHAR(format),sizeof(unsigned));
         file.write(data,size);
-        file.write(TO_CHAR(format),sizeof(GLenum));
         file.close();
     }
     LiteAPI::Shader* load_chached_shader(std::string name){
@@ -50,11 +50,11 @@ namespace Cache{
             system_logger->error() << "Couldn't open cached shader: " << name;
             return nullptr;
         }
-        char *data;GLenum format;int size;
+        char *data;unsigned format;int size;
         file.read(TO_CHAR(size),sizeof(int));
+        file.read(TO_CHAR(format),sizeof(unsigned));
         data = new char[size];
         file.read(data,size);
-        file.read(TO_CHAR(format),sizeof(GLenum));
         file.close();
         unsigned int id = glCreateProgram();
         glProgramBinary(id,format,data,size);

@@ -17,7 +17,6 @@
 #include "system/logger.hpp"
 #include "system/time.hpp"
 #include "system/types.hpp"
-#include "system/default.hpp"
 
 #include "window/window.hpp"
 #include "screen/screenmgr.hpp"

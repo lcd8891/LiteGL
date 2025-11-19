@@ -7,12 +7,14 @@
 #include <cstring>
 #include <filesystem>
 #include <LiteGL/screen/screenmgr.hpp>
+#include "../LiteData.hpp"
 
 #define _MOUSE_BUTTONS 1024
 
 namespace PRIV{
 	namespace ScreenMGR{
         void recalc_screenView();
+		void recalc_screenView_noupdate();
 	}
 }
 
@@ -27,20 +29,33 @@ namespace{
 	uint16 _fpsframe(0);
 	uint16 _fps(0);
 	double _prevTime(0);
+	const LiteAPI::INISection *window_config;
+	vector2<uint16> get_from_string(std::string str){
+		size_t pos = str.find('x');
+		if(pos==std::string::npos)return {0,0};
+		return { (uint16)std::stoi( str.substr(0,pos) ) , (uint16)std::stoi( str.substr(pos+1) ) };
+	}
 }
 
 namespace PRIV_Window{
 	vector2<uint16> window_size;
-	vector2<uint16> default_default_size;
-	std::string default_window_title;
-	std::string default_window_icon;
+	void set_window_icon(std::filesystem::path _path){
+		std::string str_path = _path.string();
+		int x,y,mode;
+		unsigned char* data = stbi_load(str_path.c_str(),&x,&y,&mode,0);
+		GLFWimage icon;icon.height=y,icon.width=x;icon.pixels=data;
+		glfwSetWindowIcon(window,1,&icon);
+		stbi_image_free(data);
+	}
 	void initialize(){
 		glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
         glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE,true);
-        window = glfwCreateWindow(800,600,"LiteGL Engine",nullptr,nullptr);
+		window_config = &(*LiteDATA::main_config)["window"];
+		window_size = get_from_string((*window_config)["size"]);
+        window = glfwCreateWindow(window_size.x,window_size.y,"LiteGL Engine",nullptr,nullptr);
 		if(!window){
 			glfwTerminate();
 			throw std::runtime_error("Couldn't create GLFW window.");
@@ -51,10 +66,6 @@ namespace PRIV_Window{
 			glfwTerminate();
 			throw std::runtime_error("Couldn't initialize glew.");
 		}
-		window_size = {800,600};
-		default_window_title = "LiteGL Engine";
-		default_default_size = {800,600};
-		default_window_icon = "ico.png";
 		glViewport(0,0,window_size.x,window_size.y);
 		glfwSetWindowSizeLimits(window,800,600,-1,-1);
 
@@ -108,6 +119,8 @@ namespace PRIV_Window{
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		_fps = glfwGetVideoMode(monitor)->refreshRate;
 		_prevTime = glfwGetTime();
+		PRIV::ScreenMGR::recalc_screenView_noupdate();
+		PRIV_Window::set_window_icon("res/icon.png");
 	}
 	bool isClosed(){
 		return glfwWindowShouldClose(window);
@@ -139,23 +152,6 @@ namespace PRIV_Window{
 		_char_input=0;
 		_current++;
 		glfwPollEvents();
-	}
-	void apply_defaults(){
-		LiteAPI::Window::setSize(default_default_size);
-		vector2<uint16> size = LiteAPI::Window::getScreenSize();
-		size.x/=2;size.x -= (default_default_size.x / 2);
-		size.y/=2;size.y -= (default_default_size.y / 2);
-		LiteAPI::Window::setPosition(size);
-	}
-	void set_window_icon(std::filesystem::path _path){
-		std::filesystem::path full_path = "./res/";
-		full_path/=_path;
-		std::string str_path = full_path.string();
-		int x,y,mode;
-		unsigned char* data = stbi_load(str_path.c_str(),&x,&y,&mode,0);
-		GLFWimage icon;icon.height=y,icon.width=x;icon.pixels=data;
-		glfwSetWindowIcon(window,1,&icon);
-		stbi_image_free(data);
 	}
 }
 

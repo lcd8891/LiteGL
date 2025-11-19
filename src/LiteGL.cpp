@@ -18,6 +18,7 @@ namespace PRIV{
 	namespace ScreenMGR{
         void initialize();
         void finalize();
+		LiteAPI::Screen* get_current();
 	}
 }
 
@@ -41,15 +42,23 @@ void loop(){
 }
 void static_initialize(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
+	LiteDATA::main_config = LiteAPI::INILoader::loadFromRes("engine");
+	system_logger->info() << "Loaded engine config...";
 	Cache::check_directories();
 	GameLDR::loadgame();
 	PRIV_Window::initialize();
 	system_logger->info() << "Window and events initialized...";
 	PRIV::ScreenMGR::initialize();
-	LiteDATA::main_config = LiteAPI::INILoader::loadFromRes("engine");
 	system_logger->info() << "Engine config loaded...";
 	PRIV::FontLoader::loadfrom("./res/font");
 	system_logger->info() << "Font initialized...";
+}
+void check_screen(){
+	if(!PRIV::ScreenMGR::get_current()){
+		LiteAPI::ScreenBuffer::create_screen("default");
+		LiteAPI::ScreenMGR::set_screen("default");
+		system_logger->warn() << "No screen installed! Installing \"default\"";
+	}
 }
 
 void start(){
@@ -59,6 +68,7 @@ void start(){
 		system_logger->info() << "Created game logger...";
 		LiteGame::on_initialize();
 		PRIV::Args::process_flags();
+		check_screen();
 		system_logger->info() << "Initialize successfully!";
 		loop();
 		LiteGame::on_exit();

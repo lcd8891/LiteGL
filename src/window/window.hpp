@@ -12,6 +12,5 @@ namespace PRIV_Window{
 	void update();
 	void finalize();
 	void pollEvents();
-	void apply_defaults();
 	void set_window_icon(std::filesystem::path _path);
 }
