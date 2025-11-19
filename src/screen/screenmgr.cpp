@@ -18,12 +18,13 @@
 #include "../graphics/fontloader.hpp"
 
 #define _ITEM_MESH_INIT_COLOR float r((float)color.r / 255),g((float)color.g / 255),b((float)color.b / 255),a((float)color.a / 255);
-#define _ITEM_MESH_INIT_POSITION float x1(position.x),x2(position.x+size.x),y1(position.y),y2(position.y+size.y);
+#define _ITEM_MESH_INIT_POSITION float x1(position.x + (window_size.x * relative.x)),x2(x1+size.x),y1(position.y + (window_size.y * relative.y)),y2(y1+size.y);
 #define _ITEM_MESH_INIT_UV float u1(uv[0]),v1(uv[1]),u2(uv[2]),v2(uv[3]);
 
 using PRIV::GlyphMetaData;
 
 namespace{
+    vector2<uint16> window_size;
     struct ScreenItemRenderInfo{
         unsigned vertex_count{0},vertex_offset{0};
         LiteAPI::ScreenItem *item;
@@ -63,7 +64,7 @@ namespace ScreenData{
 }
 
 namespace LiteAPI{
-    ScreenItem::ScreenItem(vector2<int> a, color4 b):position(a),color(b){}
+    ScreenItem::ScreenItem(vector2<int> a, color4 c,vector2<float> r):position(a),color(c),relative(r){}
     vector2<int> ScreenItem::getPosition(){
         return position;
     }
@@ -81,9 +82,18 @@ namespace LiteAPI{
         modified=true;
         position=_a;
     }
+    vector2<float> ScreenItem::getRelative(){
+        return relative;
+    }
+    void ScreenItem::setRelative(vector2<float> _r){
+        relative = _r;
+    }
+    bool ScreenItem::relativeIsZero(){
+        return relative.x == 0 && relative.y == 0;
+    }
 
 
-    RectangleItem::RectangleItem(vector2<int> a,vector2<unsigned> b,color4 c):ScreenItem(a,c),size(b){}
+    RectangleItem::RectangleItem(vector2<int> a,vector2<unsigned> b,color4 c,vector2<float> r):ScreenItem(a,c,r),size(b){}
     VertexArray* RectangleItem::getMesh(){
         _ITEM_MESH_INIT_COLOR
         _ITEM_MESH_INIT_POSITION
@@ -100,7 +110,7 @@ namespace LiteAPI{
             return arr;
     }
 
-    LineItem::LineItem(vector2<int> a,vector2<int> b,color4 c):ScreenItem(a,c),position2(b){}
+    LineItem::LineItem(vector2<int> a,vector2<int> b,color4 c,vector2<float> r):ScreenItem(a,c,r),position2(b){}
     VertexArray* LineItem::getMesh(){
         _ITEM_MESH_INIT_COLOR
         float x1 = static_cast<float>(position.x);
@@ -116,7 +126,7 @@ namespace LiteAPI{
         return arr;
     }
 
-    TextureItem::TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2):ScreenItem(a,c),size(b),uv(new float[4]),texture_key(_tex_key){
+    TextureItem::TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2,vector2<float> r):ScreenItem(a,c,r),size(b),uv(new float[4]),texture_key(_tex_key){
         uv[0] = uv1.x;
         uv[1] = uv1.y;
         uv[2] = uv2.x;
@@ -163,15 +173,15 @@ namespace LiteAPI{
         texture_key = _key;
     }
     
-    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c):ScreenItem(a,b),str(c),scale(1){}
+    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c,float s,vector2<float> r):ScreenItem(a,b,r),str(c),scale(1){}
     VertexArray* TextItem::getMesh(){
         _ITEM_MESH_INIT_COLOR
         VertexArray *arr = new VertexArray(8);
         float xpos = 0;
         for(wchar_t &ch : str){
             GlyphMetaData data = PRIV::FontLoader::getGlyphMetaData(ch);
-            float x1 = position.x + xpos + data.bearing.x;
-            float y1 = position.y + (*PRIV::FontLoader::character_size_ptr - data.bearing.y) * scale;
+            float x1 = position.x + xpos + data.bearing.x  + (window_size.x * relative.x);
+            float y1 = position.y + (*PRIV::FontLoader::character_size_ptr - data.bearing.y) * scale  + (window_size.y * relative.y);
             float x2 = x1 + data.size.x * scale;
             float y2 = y1 + data.size.y * scale;
             
@@ -308,6 +318,44 @@ namespace LiteAPI{
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
         ScreenData::text_mesh->reload(ScreenData::text_arr);
     }
+    void Screen::updateRelatived(){
+        for(auto &it : ScreenData::screen_item_render_info){
+            ScreenItemRenderInfo &info = it.second;
+            if(info.item->relativeIsZero())continue;
+            VertexArray* vertices = info.item->getMesh();
+            int total_offset_nontex = 0,total_offset_tex = 0;
+            *info.modified = false;
+            switch(info.item->getType()){
+                case ScreenItemType::Text:{
+                    if(info.vertex_count==vertices->getVertexCount()){
+                        info.vertex_offset+=total_offset_tex;
+                        ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    }else{
+                        info.vertex_offset+=total_offset_tex;
+                        ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
+                        ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount(),info.vertex_offset);
+                        total_offset_tex=vertices->getVertexCount()-info.vertex_count;
+                        info.vertex_count=vertices->getVertexCount();
+                    }
+                }
+                    break;
+                case ScreenItemType::Rectangle:
+                    info.vertex_offset+=total_offset_nontex;
+                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                case ScreenItemType::Line:
+                    info.vertex_offset+=total_offset_nontex;
+                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                case ScreenItemType::Texture:
+                    info.vertex_offset+=total_offset_tex;
+                    ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+            }
+        }
+        ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
+        ScreenData::text_mesh->reload(ScreenData::text_arr);
+    }
 
     void Screen::add_item(std::string _name,ScreenItem *_item){
         items[_name]=_item;
@@ -349,9 +397,10 @@ namespace LiteAPI{
 namespace PRIV{
 	namespace ScreenMGR{
         void recalc_screenView(){
-            vector2<uint16> size = LiteAPI::Window::getSize();
-            glm::mat4 mat = glm::ortho(0.f,(float)size.x,(float)size.y,0.f);
+            window_size = LiteAPI::Window::getSize();
+            glm::mat4 mat = glm::ortho(0.f,(float)window_size.x,(float)window_size.y,0.f);
             screenView = mat;
+            current->updateRelatived();
         }
         void initialize(){
             ScreenData::nontext_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,0});

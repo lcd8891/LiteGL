@@ -14,10 +14,11 @@ namespace LiteAPI{
         protected:
         vector2<int> position;
         color4 color;
+        vector2<float> relative;
 
         public:
         bool modified = false;
-        ScreenItem(vector2<int> a, color4 c);
+        ScreenItem(vector2<int> a, color4 c,vector2<float> r);
 
         virtual VertexArray* getMesh() = 0;
         virtual ScreenItemType getType() = 0;
@@ -26,15 +27,18 @@ namespace LiteAPI{
         vector2<int> getPosition();
         color4 getColor();
         bool& getModified();
+        vector2<float> getRelative();
+        bool relativeIsZero();
 
         void setColor(color4 _a);
         void setPosition(vector2<int> _a);
+        void setRelative(vector2<float> _r);
     };
     class RectangleItem : public ScreenItem{
         private:
         vector2<unsigned> size;
         public:
-        RectangleItem(vector2<int> a,vector2<unsigned> b,color4 c);
+        RectangleItem(vector2<int> a,vector2<unsigned> b,color4 c,vector2<float> r = {0,0});
 
         VertexArray* getMesh() override; 
         ScreenItemType getType() override {return ScreenItemType::Rectangle;};
@@ -47,7 +51,7 @@ namespace LiteAPI{
         private:
         vector2<int> position2;
         public:
-        LineItem(vector2<int> a,vector2<int> b,color4 c);
+        LineItem(vector2<int> a,vector2<int> b,color4 c,vector2<float> r = {0,0});
 
         VertexArray* getMesh() override; 
         ScreenItemType getType() override {return ScreenItemType::Line;};
@@ -61,7 +65,7 @@ namespace LiteAPI{
         vector2<unsigned> size;
         std::string texture_key;
         public:
-        TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2);
+        TextureItem(vector2<int> a,color4 c,vector2<unsigned> b,std::string _tex_key,vector2<float> uv1,vector2<float> uv2,vector2<float> r = {0,0});
         ~TextureItem();
 
         VertexArray* getMesh() override;
@@ -79,7 +83,7 @@ namespace LiteAPI{
         std::wstring str;
         float scale;
         public:
-        TextItem(vector2<int> a,color4 b,std::wstring c);
+        TextItem(vector2<int> a,color4 b,std::wstring c,float s = 1.f,vector2<float> r = {0,0});
         
         VertexArray* getMesh() override;
         ScreenItemType getType() override {return ScreenItemType::Text;};

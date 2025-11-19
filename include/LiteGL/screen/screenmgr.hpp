@@ -16,6 +16,7 @@ namespace LiteAPI{
         void operator()();
         void add_item(std::string _name,ScreenItem *_item);
         void update();
+        void updateRelatived();
         ScreenItem* getItem(std::string _name);
     };
     namespace ScreenMGR{
