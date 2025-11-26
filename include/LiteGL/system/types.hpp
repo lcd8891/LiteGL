@@ -28,6 +28,12 @@ struct vector3{
 	}
 };
 
+struct rotation{
+	float p;
+	float y;
+	float r;
+};
+
 struct color4{
 	uint8 r;
 	uint8 g;

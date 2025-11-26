@@ -9,8 +9,8 @@
 #include "../LiteData.hpp"
 #include <filesystem>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../../lib/stb_image_write.h"
-#include "../../lib/stb_image.h"
+#include <stb_image_write.h>
+#include <stb_image.h>
 #include "../system/priv_logger.hpp"
 
 #define F_TOCHAR(OBJ) reinterpret_cast<char*>(&OBJ)

@@ -5,7 +5,7 @@
 #include "../system/priv_logger.hpp"
 #include <map>
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../lib/stb_image.h"
+#include <stb_image.h>
 #include <GL/glew.h>
 #include <stdexcept>
 
@@ -95,5 +95,10 @@ namespace LiteAPI{
         void delete_all_screens(){
             _B_CLR(shader_map);
         }
+    }
+}
+namespace PRIV{
+    void texture_buffer_set_mem(LiteAPI::Texture *obj,std::string _name){
+        texture_map[_name] = obj;
     }
 }

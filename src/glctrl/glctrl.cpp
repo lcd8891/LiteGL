@@ -20,7 +20,7 @@ namespace LiteAPI{
         void clear_color(color4 _color){
             glClearColor(_color.r / 255.f, _color.g / 255.f,_color.b / 255.f,_color.a / 255.f);
         }
-        void face_culling(bool _enable){
+        void setFaceCulling(bool _enable){
             GL_ON_OFF(GL_CULL_FACE)
         }
         void setCullFace(CullFace _face){
@@ -37,6 +37,13 @@ namespace LiteAPI{
         }
         void blendFunc(BlendOption option){
             glBlendFunc(GL_SRC_ALPHA,(int)option);
+        }
+        
+        void setDepthTest(bool _enable){
+            GL_ON_OFF(GL_DEPTH_TEST)
+        }
+        void depthFunc(DepthFunc func){
+            glDepthFunc((int)func);
         }
     }
 }

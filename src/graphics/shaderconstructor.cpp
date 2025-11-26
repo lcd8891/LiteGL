@@ -28,7 +28,19 @@ unsigned int _compileshader(const std::string &_code,LiteAPI::ShaderType _type){
     if(!status){
         char log[512];
         glGetShaderInfoLog(tmp,512,nullptr,&log[0]);
-        throw std::runtime_error("Compile error: "+std::string(log));
+        std::string str_t;
+        switch(_type){
+            case LiteAPI::ShaderType::Fragment:
+            str_t = "fragment";
+            break;
+            case LiteAPI::ShaderType::Geometry:
+            str_t = "geometry";
+            break;
+            case LiteAPI::ShaderType::Vertex:
+            str_t = "vertex";
+            break;
+        }
+        throw std::runtime_error("Shader compilation error: "+std::string(log)+"\tshader type: "+str_t);
     }
     return tmp;
 }

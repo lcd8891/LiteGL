@@ -7,6 +7,8 @@ namespace LiteAPI{
     enum class Primitive{
         Points = 0x0,
         Lines = 0x1,
+        Line_loop = 0x2,
+        Line_strip = 0x3,
         Lines_adjacency = 0xa,
         Triangles = 0x4,
         Triangle_strip = 0x5

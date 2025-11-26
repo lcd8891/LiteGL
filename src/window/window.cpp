@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include "../../lib/stb_image.h"
+#include <stb_image.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "../system/privtypes.hpp"
@@ -21,7 +21,7 @@ namespace PRIV{
 namespace{
 	GLFWwindow* window;
 	uint32 *_frames;
-	bool *_keys,_focused,__fullscreen;
+	bool *_keys,_focused,__fullscreen,_locked;
 	uint32 	_current;
 	vector2<int16> _mouse_pos,_mouse_delta; 
 	int8 _mwheel_delta;
@@ -29,7 +29,9 @@ namespace{
 	uint16 _fpsframe(0);
 	uint16 _fps(0);
 	double _prevTime(0);
+	float _frameTime(0);
 	const LiteAPI::INISection *window_config;
+	vector2<uint16> default_size;
 	vector2<uint16> get_from_string(std::string str){
 		size_t pos = str.find('x');
 		if(pos==std::string::npos)return {0,0};
@@ -54,8 +56,9 @@ namespace PRIV_Window{
         glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_RESIZABLE,true);
 		window_config = &(*LiteDATA::main_config)["window"];
-		window_size = get_from_string((*window_config)["size"]);
-        window = glfwCreateWindow(window_size.x,window_size.y,"LiteGL Engine",nullptr,nullptr);
+		default_size = get_from_string((*window_config)["size"]);
+		window_size = default_size;
+        window = glfwCreateWindow(default_size.x,default_size.y,(*window_config)["title"].c_str(),nullptr,nullptr);
 		if(!window){
 			glfwTerminate();
 			throw std::runtime_error("Couldn't create GLFW window.");
@@ -119,6 +122,7 @@ namespace PRIV_Window{
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		_fps = glfwGetVideoMode(monitor)->refreshRate;
 		_prevTime = glfwGetTime();
+		_frameTime = 1.f/_fps;
 		PRIV::ScreenMGR::recalc_screenView_noupdate();
 		PRIV_Window::set_window_icon("res/icon.png");
 	}
@@ -132,6 +136,7 @@ namespace PRIV_Window{
 			_fps=_fpsframe;
 			_fpsframe=0;
 			_prevTime=current;
+			_frameTime=1.f/_fps;
 		}else{
 			_fpsframe++;
 		}
@@ -174,6 +179,7 @@ namespace LiteAPI{
 					PRIV_Window::window_size.x = _size.x;PRIV_Window::window_size.y = _size.y;
 				}
 			}else{
+				PRIV_Window::window_size = default_size;
 				glfwSetWindowMonitor(window,nullptr,mode->width/2-400,mode->height/2-300,800,600,mode->refreshRate);
 				PRIV_Window::window_size.x = 800;PRIV_Window::window_size.y = 600;
 			}
@@ -205,6 +211,19 @@ namespace LiteAPI{
 		}
 		uint16 getFPS(){
 			return _fps;
+		}
+		const float& getFrameTime(){
+			return _frameTime;
+		}
+		void setMouseLock(bool lock){
+			_locked = lock;
+			glfwSetInputMode(window,GLFW_CURSOR,(lock) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+		}
+		const bool& getMouseLock(){
+			return _locked;
+		}
+		void close(){
+			glfwSetWindowShouldClose(window,true);
 		}
 	}
 	namespace Events{

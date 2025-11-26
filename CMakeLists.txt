@@ -16,6 +16,8 @@ find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
+find_package(simdjson CONFIG REQUIRED)
+find_package(fastgltf REQUIRED)
 
 add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
 add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp 
@@ -23,7 +25,9 @@ add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp
                     src/graphics/shader.cpp 
                     src/graphics/texture.cpp 
                     src/graphics/vertexarray.cpp 
-                    src/graphics/fontloader.cpp)
+                    src/graphics/fontloader.cpp
+                    src/graphics/model.cpp
+                    src/graphics/camera.cpp)
 add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
 add_library(lite-system OBJECT src/system/logger.cpp 
                     src/system/time.cpp 
@@ -49,7 +53,7 @@ target_include_directories(lite-api
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw Freetype::Freetype)
+target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw Freetype::Freetype fastgltf::fastgltf)
 
 if(WIN32)
 add_executable(${PROJECT_NAME} WIN32 src/LiteGL.cpp)
@@ -58,7 +62,7 @@ add_executable(${PROJECT_NAME} src/LiteGL.cpp)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE lite-api)
 
-include_directories(${CMAKE_HOME_DIRECTORY}/include ${FREETYPE_INCLUDE_DIRS})
+include_directories(${CMAKE_HOME_DIRECTORY}/include ${FREETYPE_INCLUDE_DIRS} ${CMAKE_HOME_DIRECTORY}/lib)
 
 install(FILES 
     ${CMAKE_BINARY_DIR}/lite-api_export.h

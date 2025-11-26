@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <glm/matrix.hpp>
 
 namespace LiteAPI{
     class VertexArray{
@@ -47,6 +48,7 @@ namespace LiteAPI{
         void replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
         void replace(float* value,unsigned from_vertex,unsigned size = 1);
         void erase(unsigned vertices,unsigned offset);
+        void applyMatrix4(glm::mat4 _mat, int to_attrs[3],float vertex_offset,float vertex_count);
         float* getData();
         void reserver(unsigned _vertices);
         void clear();

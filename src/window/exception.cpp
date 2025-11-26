@@ -5,7 +5,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <stdlib.h>
+#include <cstdlib>
 #include <cstring>
 #endif
 
@@ -21,10 +21,10 @@ void show_error(const std::string _str){
     bool dialog_shown = false;
         
     const char* dialog_commands[] = {
-        "kdialog --error \"%s\"",
-        "zenity --error --text=\"%s\" --title=\"Error\"",
+        "kdialog --error \"%s\" --title=\"LiteGL error\"",
+        "zenity --error --text=\"%s\" --title=\"LiteGL error\"",
         "xmessage -center \"%s\"",
-        "yad --error --text=\"%s\" --title=\"Error\"",
+        "yad --error --text=\"%s\" --title=\"LiteGL error\"",
         "gxmessage \"%s\"",
         nullptr
     };

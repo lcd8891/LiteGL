@@ -148,6 +148,10 @@ namespace LiteAPI{
         vector2<uint16> getScreenSize();
         vector2<uint16> getSize();
         uint16 getFPS();
+        const float& getFrameTime();
+        const bool& getMouseLock();
+        void setMouseLock(bool lock);
+        void close();
     }
     namespace Events{
         const vector2<int16>& getMousePosition();

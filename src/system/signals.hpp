@@ -1,6 +1,5 @@
 #pragma once
 #include <csignal>
-#include <cstdlib>
 #include <functional>
 #include "../window/exception.hpp"
 
@@ -93,6 +92,7 @@ namespace{std::function<void()> func = nullptr;}
         SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX);
     }
 #else
+#include <cstdlib>
 void signal_action_handler(int sig, siginfo_t* info, void* context){
     std::string error_msg = "ENGINE EXECUTION TERMINATED!\n->Recieved signal\n";
     switch(sig) {

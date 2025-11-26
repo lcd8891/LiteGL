@@ -12,7 +12,7 @@ LiteAPI::Mesh::Mesh(const float* _buffer,uint64 _vertices,const int* _attr):vert
 
     glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*_vertices, _buffer,GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*vertices, _buffer,GL_STATIC_DRAW);
 
     int offset = 0;
     for(int i = 0;_attr[i];i++){
@@ -26,13 +26,14 @@ LiteAPI::Mesh::Mesh(const float* _buffer,uint64 _vertices,const int* _attr):vert
 }
 LiteAPI::Mesh::Mesh(VertexArray* array, const int* _attr){
     vertex_size = array->getVertexSize();
-    const float* _buffer = array->getData();uint64 _vertices = array->getVertexCount();
+    const float* _buffer = array->getData();
+    vertices = array->getVertexCount();
     glGenVertexArrays(1,&vao);
     glGenBuffers(1,&vbo);
 
     glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*_vertices, _buffer,GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*vertex_size*vertices, _buffer,GL_STATIC_DRAW);
 
     int offset = 0;
     for(int i = 0;_attr[i];i++){
@@ -91,7 +92,7 @@ LiteAPI::DynamicMesh::DynamicMesh(const float* _buffer,uint64 _vertices,const in
 	    glEnableVertexAttribArray(i);
         offset += _attr[i];
     }
-
+    
 	glBindVertexArray(0);
 }
 LiteAPI::DynamicMesh::DynamicMesh(VertexArray* array, const int* _attr){
