@@ -9,9 +9,12 @@
 #include <GL/glew.h>
 #include <stdexcept>
 
+namespace{
 std::map<std::string,LiteAPI::Texture*> texture_map;
 std::map<std::string,LiteAPI::Shader*> shader_map;
 std::map<std::string,LiteAPI::Screen*> screen_map;
+
+}
 
 #define _B_NEW(BUF,OBJ) auto it = BUF.find(_name); if(it == BUF.end()){BUF[_name] = OBJ;}else{delete it->second;it->second = OBJ;system_logger->warn() << ("overriding resource: "+_name);} return OBJ;
 #define _B_GET(BUF) auto it = BUF.find(_name);if(it == BUF.end()){throw std::runtime_error("trying to get unknown resource: "+_name);}else{return it->second;}
