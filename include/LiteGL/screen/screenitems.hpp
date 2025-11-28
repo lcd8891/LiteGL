@@ -17,7 +17,7 @@ namespace LiteAPI{
         vector2<float> relative;
 
         public:
-        bool modified = false;
+        bool modified = true;
         ScreenItem(vector2<int> a, color4 c,vector2<float> r);
 
         virtual VertexArray* getMesh() = 0;
@@ -29,6 +29,10 @@ namespace LiteAPI{
         bool& getModified();
         vector2<float> getRelative();
         bool relativeIsZero();
+        template<typename T>
+        T* toItemType(){
+            return static_cast<T*>(this);
+        }
 
         void setColor(color4 _a);
         void setPosition(vector2<int> _a);

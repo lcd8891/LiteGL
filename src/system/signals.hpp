@@ -151,7 +151,7 @@ void signal_action_handler(int sig, siginfo_t* info, void* context){
             break;
             
         default:
-            error_msg += "Неизвестный сигнал (" + std::to_string(sig) + ")";
+            error_msg += "Unknown signal (" + std::to_string(sig) + ")";
     }
     show_error(error_msg);
     func();

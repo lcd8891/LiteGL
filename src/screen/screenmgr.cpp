@@ -57,10 +57,10 @@ namespace{
     glm::mat4 screenView;
 }
 namespace ScreenData{
-    LiteAPI::DynamicMesh *nontext_mesh,*text_mesh;
-    LiteAPI::VertexArray *nontext_arr,*text_arr;
+    LiteAPI::DynamicMesh *nontext_mesh,*text_mesh,*tex_mesh;
+    LiteAPI::VertexArray *nontext_arr,*text_arr,*tex_arr;
     
-    std::unordered_map<std::string,ScreenItemRenderInfo> screen_item_render_info;
+    std::vector<ScreenItemRenderInfo> screen_item_render_info;
 }
 
 namespace LiteAPI{
@@ -173,7 +173,7 @@ namespace LiteAPI{
         texture_key = _key;
     }
     
-    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c,float s,vector2<float> r):ScreenItem(a,b,r),str(c),scale(1){}
+    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c,float s,vector2<float> r):ScreenItem(a,b,r),str(c),scale(s){}
     VertexArray* TextItem::getMesh(){
         _ITEM_MESH_INIT_COLOR
         VertexArray *arr = new VertexArray(8);
@@ -242,34 +242,28 @@ namespace LiteAPI{
             item->modified = false;
             switch(item->getType()){
                 case ScreenItemType::Rectangle:
-                    data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
-                    data.shadertype=nontex_shader;
-                    data.texture_key="";
-                    ScreenData::screen_item_render_info[id] = data;
-                    ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
-                    break;
                 case ScreenItemType::Line:
                     data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
                     data.shadertype=nontex_shader;
                     data.texture_key="";
-                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::screen_item_render_info.push_back(data);
                     ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
                     break;
                 case ScreenItemType::Texture:
-                    data.vertex_offset = ScreenData::text_arr->getVertexCount();
+                    data.vertex_offset = ScreenData::tex_arr->getVertexCount();
                     data.shadertype=tex_shader;
                     {
                         TextureItem *tex_item = static_cast<TextureItem*>(item);
                         data.texture_key=tex_item->getTextureKey();
                     }
-                    ScreenData::screen_item_render_info[id] = data;
-                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
+                    ScreenData::screen_item_render_info.push_back(data);
+                    ScreenData::tex_arr->insert(vertices->getData(),vertices->getVertexCount());
                     break;
                 case ScreenItemType::Text:
                     data.vertex_offset = ScreenData::text_arr->getVertexCount();
                     data.shadertype=text_shader;
                     data.texture_key="__font__";
-                    ScreenData::screen_item_render_info[id] = data;
+                    ScreenData::screen_item_render_info.push_back(data);
                     ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
                     break;
             }
@@ -278,92 +272,106 @@ namespace LiteAPI{
 
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
         ScreenData::text_mesh->reload(ScreenData::text_arr);
+        ScreenData::tex_mesh->reload(ScreenData::tex_arr);
     }
 
     void Screen::update(){
-        for(auto &it : ScreenData::screen_item_render_info){
-            ScreenItemRenderInfo &info = it.second;
-            if(!*info.modified)continue;
-            VertexArray* vertices = info.item->getMesh();
-            int total_offset_nontex = 0,total_offset_tex = 0;
-            *info.modified = false;
-            switch(info.item->getType()){
-                case ScreenItemType::Text:{
-                    if(info.vertex_count==vertices->getVertexCount()){
-                        info.vertex_offset+=total_offset_tex;
-                        ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    }else{
-                        info.vertex_offset+=total_offset_tex;
-                        ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
-                        ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount(),info.vertex_offset);
-                        total_offset_tex=vertices->getVertexCount()-info.vertex_count;
-                        info.vertex_count=vertices->getVertexCount();
+        int totaloffset = 0;
+        for(auto &info : ScreenData::screen_item_render_info){
+            ScreenItem* item = info.item;
+            if(item->getType()==ScreenItemType::Text){
+                info.vertex_offset += totaloffset;
+            }
+            if(item->modified){
+                VertexArray *array = item->getMesh();
+                switch(item->getType()){
+                    case ScreenItemType::Line:
+                    case ScreenItemType::Rectangle:
+                    ScreenData::nontext_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                    case ScreenItemType::Texture:
+                    ScreenData::tex_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                    case ScreenItemType::Text:{
+                        unsigned newsize = array->getVertexCount();
+                        int delta = newsize - info.vertex_count;
+                        if(delta == 0){
+                            ScreenData::text_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                        }else{
+                            ScreenData::text_arr->erase(info.vertex_count,info.vertex_offset);
+                            ScreenData::text_arr->insert(array->getData(),newsize,info.vertex_offset);
+                            info.vertex_count = newsize;
+                            totaloffset+=delta;
+                        }
                     }
+                    break;
                 }
-                    break;
-                case ScreenItemType::Rectangle:
-                    info.vertex_offset+=total_offset_nontex;
-                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
-                case ScreenItemType::Line:
-                    info.vertex_offset+=total_offset_nontex;
-                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
-                case ScreenItemType::Texture:
-                    info.vertex_offset+=total_offset_tex;
-                    ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
+                delete array;
+                item->modified = false;
             }
         }
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
         ScreenData::text_mesh->reload(ScreenData::text_arr);
+        ScreenData::tex_mesh->reload(ScreenData::tex_arr);
     }
     void Screen::updateRelatived(){
-        for(auto &it : ScreenData::screen_item_render_info){
-            ScreenItemRenderInfo &info = it.second;
-            if(info.item->relativeIsZero())continue;
-            VertexArray* vertices = info.item->getMesh();
-            int total_offset_nontex = 0,total_offset_tex = 0;
-            *info.modified = false;
-            switch(info.item->getType()){
-                case ScreenItemType::Text:{
-                    if(info.vertex_count==vertices->getVertexCount()){
-                        info.vertex_offset+=total_offset_tex;
-                        ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    }else{
-                        info.vertex_offset+=total_offset_tex;
-                        ScreenData::text_arr->erase(info.vertex_offset,info.vertex_count);
-                        ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount(),info.vertex_offset);
-                        total_offset_tex=vertices->getVertexCount()-info.vertex_count;
-                        info.vertex_count=vertices->getVertexCount();
+        int totaloffset = 0;
+        for(auto &info : ScreenData::screen_item_render_info){
+            ScreenItem* item = info.item;
+            if(item->getType()==ScreenItemType::Text){
+                info.vertex_offset += totaloffset;
+            }
+            if(!item->relativeIsZero()){
+                VertexArray *array = item->getMesh();
+                switch(item->getType()){
+                    case ScreenItemType::Line:
+                    case ScreenItemType::Rectangle:
+                    ScreenData::nontext_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                    case ScreenItemType::Texture:
+                    ScreenData::tex_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    break;
+                    case ScreenItemType::Text:{
+                        unsigned newsize = array->getVertexCount();
+                        int delta = newsize - info.vertex_count;
+                        if(delta == 0){
+                            ScreenData::text_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                        }else{
+                            ScreenData::text_arr->erase(info.vertex_count,info.vertex_offset);
+                            ScreenData::text_arr->insert(array->getData(),newsize,info.vertex_offset);
+                            info.vertex_count = newsize;
+                            totaloffset+=delta;
+                        }
                     }
+                    break;
                 }
-                    break;
-                case ScreenItemType::Rectangle:
-                    info.vertex_offset+=total_offset_nontex;
-                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
-                case ScreenItemType::Line:
-                    info.vertex_offset+=total_offset_nontex;
-                    ScreenData::nontext_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
-                case ScreenItemType::Texture:
-                    info.vertex_offset+=total_offset_tex;
-                    ScreenData::text_arr->replace(vertices->getData(),info.vertex_offset,info.vertex_count);
-                    break;
+                delete array;
+                item->modified = false;
             }
         }
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
         ScreenData::text_mesh->reload(ScreenData::text_arr);
+        ScreenData::tex_mesh->reload(ScreenData::tex_arr);
     }
 
-    void Screen::add_item(std::string _name,ScreenItem *_item){
-        items[_name]=_item;
+    void Screen::addItem(std::string _name,ScreenItem *_item){
+        for(auto i = items.begin(); i!=items.end();++i){
+            if(_name == i->first){
+                delete i->second;
+                items.erase(i);
+                break;
+            }
+        }
+        items.emplace_back(_name,_item);
     }
 
     ScreenItem* Screen::getItem(std::string _name){
-        auto it = items.find(_name);
-        return (it->second) ? it->second : nullptr;
+        for(auto i = items.begin(); i!=items.end();++i){
+            if(_name == i->first){
+                return i->second;
+            }
+        }
+        return nullptr;
     }
 
     namespace ScreenMGR{
@@ -377,8 +385,7 @@ namespace LiteAPI{
             current->update();
         }
         void render_screen(){
-            for(auto it : ScreenData::screen_item_render_info){
-                const ScreenItemRenderInfo &info = it.second;
+            for(auto &info : ScreenData::screen_item_render_info){
                 info.shadertype->bind();
                 info.shadertype->uniformMatrix("view",::screenView);
                 if(info.texture_key.empty()){
@@ -388,7 +395,7 @@ namespace LiteAPI{
                     ScreenData::text_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
                 }else{
                     TextureBuffer::get_texture(info.texture_key)->use();
-                    ScreenData::text_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
+                    ScreenData::tex_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
                 }
             }
         }
@@ -413,8 +420,10 @@ namespace PRIV{
         void initialize(){
             ScreenData::nontext_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,0});
             ScreenData::text_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,2,0});
+            ScreenData::tex_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,2,0});
             ScreenData::nontext_arr = new LiteAPI::VertexArray(6);
             ScreenData::text_arr = new LiteAPI::VertexArray(8);
+            ScreenData::tex_arr = new LiteAPI::VertexArray(8);
             system_logger->info() << "ScreenMGR initializing...";
             nontex_shader = Cache::load_chached_shader("nontex_shader");
             tex_shader = Cache::load_chached_shader("tex_shader");

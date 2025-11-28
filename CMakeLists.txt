@@ -101,3 +101,4 @@ add_custom_command(TARGET lite-api POST_BUILD
     COMMENT "Copying export header and config files to output directory"
 )
 add_subdirectory("test_game")
+add_subdirectory("bin")
