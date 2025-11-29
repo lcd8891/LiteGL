@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <LiteGL/screen/screenmgr.hpp>
 #include "../LiteData.hpp"
+#include <functional>
 
 #define _MOUSE_BUTTONS 1024
 
@@ -16,6 +17,10 @@ namespace PRIV{
         void recalc_screenView();
 		void recalc_screenView_noupdate();
 	}
+}
+
+namespace Callbacks{
+	std::function<void(bool)> focus = nullptr;
 }
 
 namespace{
@@ -118,6 +123,10 @@ namespace PRIV_Window{
 		});
 		glfwSetWindowFocusCallback(window,[](GLFWwindow *window,int focused){
 			_focused = focused;
+			if(Callbacks::focus == nullptr) Callbacks::focus(_focused);
+			if(_locked){
+				LiteAPI::Window::setMouseLock(false);
+			}
 		});
 		GLFWmonitor *monitor = glfwGetPrimaryMonitor();
 		_fps = glfwGetVideoMode(monitor)->refreshRate;
@@ -230,6 +239,9 @@ namespace LiteAPI{
 		}
 	}
 	namespace Events{
+		void setWindowFocusEvent(std::function<void(bool)> _func){
+			Callbacks::focus = _func;
+		}
 		const vector2<int16>& getMousePosition(){
 			return _mouse_pos;
 		}

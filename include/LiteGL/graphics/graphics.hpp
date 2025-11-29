@@ -7,3 +7,4 @@
 #include "vertexarray.hpp"
 #include "camera.hpp"
 #include "model.hpp"
+#include "renderctl.hpp"

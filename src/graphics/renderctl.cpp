@@ -1,4 +1,4 @@
-#include <LiteGL/glctrl/glctrl.hpp>
+#include <LiteGL/graphics/renderctl.hpp>
 #include <GL/gl.h>
 #include <LiteGL/system/types.hpp>
 
