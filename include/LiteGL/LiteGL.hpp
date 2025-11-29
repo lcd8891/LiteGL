@@ -21,5 +21,5 @@
 #include "window/window.hpp"
 #include "screen/screenmgr.hpp"
 #include "glctrl/glctrl.hpp"
-#include "buffer/buffers.hpp"
+#include "assets/buffers.hpp"
 #include "graphics/graphics.hpp"

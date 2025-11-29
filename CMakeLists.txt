@@ -14,12 +14,13 @@ endif()
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(simdjson CONFIG REQUIRED)
 find_package(fastgltf REQUIRED)
 
-add_library(lite-buffers OBJECT src/buffer/buffer.cpp)
+add_library(lite-assets OBJECT src/assets/buffer.cpp)
 add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp 
                     src/graphics/mesh.cpp 
                     src/graphics/shader.cpp 
@@ -27,7 +28,8 @@ add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp
                     src/graphics/vertexarray.cpp 
                     src/graphics/fontloader.cpp
                     src/graphics/model.cpp
-                    src/graphics/camera.cpp)
+                    src/graphics/camera.cpp
+                    src/graphics/renderctl.cpp)
 add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
 add_library(lite-system OBJECT src/system/logger.cpp 
                     src/system/time.cpp 
@@ -37,15 +39,13 @@ add_library(lite-system OBJECT src/system/logger.cpp
                     src/system/cache.cpp
                     src/system/iniloader.cpp
                     src/LiteDATA.cpp)
-add_library(lite-glctrl OBJECT src/glctrl/glctrl.cpp)
 add_library(lite-screen OBJECT src/screen/screenmgr.cpp)
 
 add_library(lite-api SHARED 
-    $<TARGET_OBJECTS:lite-buffers>
+    $<TARGET_OBJECTS:lite-assets>
     $<TARGET_OBJECTS:lite-graphic>
     $<TARGET_OBJECTS:lite-window>
     $<TARGET_OBJECTS:lite-system>
-    $<TARGET_OBJECTS:lite-glctrl>
     $<TARGET_OBJECTS:lite-screen>
 )
 target_include_directories(lite-api
@@ -53,7 +53,7 @@ target_include_directories(lite-api
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw Freetype::Freetype fastgltf::fastgltf)
+target_link_libraries(lite-api PUBLIC OpenGL::GL GLEW::GLEW Freetype::Freetype glfw Freetype::Freetype fastgltf::fastgltf OpenAL::OpenAL)
 
 if(WIN32)
 add_executable(${PROJECT_NAME} WIN32 src/LiteGL.cpp)

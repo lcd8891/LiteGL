@@ -5,7 +5,7 @@
 #define GL_ON_OFF(V) (_enable ? glEnable : glDisable)(V);
 
 namespace LiteAPI{
-    namespace GLCtrl{
+    namespace RenderCtl{
         void clear(bool color_buffer,bool depth_buffer){
             unsigned int b;
             if(color_buffer && depth_buffer){
@@ -17,7 +17,7 @@ namespace LiteAPI{
             }
             glClear(b);
         }
-        void clear_color(color4 _color){
+        void setClearColor(color4 _color){
             glClearColor(_color.r / 255.f, _color.g / 255.f,_color.b / 255.f,_color.a / 255.f);
         }
         void setFaceCulling(bool _enable){

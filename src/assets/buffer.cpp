@@ -54,48 +54,48 @@ LiteAPI::Texture* _load_from_file(const std::string _path){
 }
 
 namespace LiteAPI{
-    namespace TextureBuffer{
-        Texture* load_from_res(std::string _path, std::string _name){
+    namespace TextureAssets{
+        Texture* loadFromRes(std::string _path, std::string _name){
             Texture* texture = _load_from_file("./res/textures/"+_path+".png");
             _B_NEW(texture_map,texture)
         }
-        Texture* get_texture(std::string _name){
+        Texture* get(std::string _name){
             _B_GET(texture_map)
         }
-        void delete_texture(std::string _name){
+        void deleteOne(std::string _name){
             _B_DEL(texture_map)
         }
-        void delete_all_textures(){
+        void deleteAll(){
             _B_CLR(texture_map)
         }
     }
-    namespace ShaderBuffer{
-        Shader* load_from_constructor(const ShaderConstructor &_constructor,std::string _name){
+    namespace ShaderAssets{
+        Shader* loadFromConstructor(const ShaderConstructor &_constructor,std::string _name){
             Shader *shader = _constructor.create();
             _B_NEW(shader_map,shader);
         }
-        Shader* get_shader(std::string _name){
+        Shader* get(std::string _name){
             _B_GET(shader_map)
         }
-        void delete_shader(std::string _name){
+        void deleteOne(std::string _name){
             _B_DEL(shader_map)
         }
-        void delete_all_shaders(){
+        void deleteAll(){
             _B_CLR(shader_map)
         }
     }
-    namespace ScreenBuffer{
-        Screen* create_screen(std::string _name){
+    namespace ScreenAssets{
+        Screen* create(std::string _name){
             Screen* sas = new Screen;
             _B_NEW(screen_map,sas);
         }
-        Screen* get_screen(std::string _name){
+        Screen* get(std::string _name){
             _B_GET(screen_map);
         }
-        void delete_screen(std::string _name){
+        void deleteOne(std::string _name){
             _B_DEL(shader_map);
         }
-        void delete_all_screens(){
+        void deleteAll(){
             _B_CLR(shader_map);
         }
     }
