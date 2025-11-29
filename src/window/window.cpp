@@ -180,8 +180,11 @@ namespace LiteAPI{
 				}
 			}else{
 				PRIV_Window::window_size = default_size;
-				glfwSetWindowMonitor(window,nullptr,mode->width/2-400,mode->height/2-300,800,600,mode->refreshRate);
-				PRIV_Window::window_size.x = 800;PRIV_Window::window_size.y = 600;
+				glfwSetWindowMonitor(window,nullptr,
+					mode->width/2-PRIV_Window::window_size.x/2,
+					mode->height/2-PRIV_Window::window_size.y/2,
+					PRIV_Window::window_size.x,PRIV_Window::window_size.y,
+					mode->refreshRate);
 			}
 			glViewport(0,0,PRIV_Window::window_size.x,PRIV_Window::window_size.y);
 			PRIV::ScreenMGR::recalc_screenView();
