@@ -2,6 +2,8 @@
 #include <vector>
 #include <glm/matrix.hpp>
 
+//If you read this, delete this file from universe
+
 namespace LiteAPI{
     class VertexArray{
         private:
@@ -45,12 +47,15 @@ namespace LiteAPI{
         unsigned getVertexSize();
         void insert(float* _data, unsigned vertex_count);
         void insert(float* _data, unsigned vertex_count,unsigned vertex_offset);
+        void insert(VertexArray *another_array,unsigned vertex_offset = 0);
         void replaceAttribute(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
         void replace(float* value,unsigned from_vertex,unsigned size = 1);
+        void replace(VertexArray *one, unsigned vertex_offset);
         void erase(unsigned vertices,unsigned offset);
         void applyMatrix4(glm::mat4 _mat, int to_attrs[3],float vertex_offset,float vertex_count);
+        VertexArray* subarray(unsigned size,unsigned offset = 0);
         float* getData();
-        void reserver(unsigned _vertices);
+        void reserve(unsigned _vertices);
         void clear();
         unsigned getVertexCount();
         VertexIterator begin();

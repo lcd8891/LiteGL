@@ -293,19 +293,19 @@ namespace LiteAPI{
                 switch(item->getType()){
                     case ScreenItemType::Line:
                     case ScreenItemType::Rectangle:
-                    ScreenData::nontext_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    ScreenData::nontext_arr->replace(array,info.vertex_count);
                     break;
                     case ScreenItemType::Texture:
-                    ScreenData::tex_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    ScreenData::tex_arr->replace(array,info.vertex_count);
                     break;
                     case ScreenItemType::Text:{
                         unsigned newsize = array->getVertexCount();
                         int delta = newsize - info.vertex_count;
                         if(delta == 0){
-                            ScreenData::text_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                            ScreenData::text_arr->replace(array,info.vertex_count);
                         }else{
                             ScreenData::text_arr->erase(info.vertex_count,info.vertex_offset);
-                            ScreenData::text_arr->insert(array->getData(),newsize,info.vertex_offset);
+                            ScreenData::text_arr->insert(array,info.vertex_offset);
                             info.vertex_count = newsize;
                             totaloffset+=delta;
                         }
@@ -336,19 +336,19 @@ namespace LiteAPI{
                 switch(item->getType()){
                     case ScreenItemType::Line:
                     case ScreenItemType::Rectangle:
-                    ScreenData::nontext_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    ScreenData::nontext_arr->replace(array,info.vertex_count);
                     break;
                     case ScreenItemType::Texture:
-                    ScreenData::tex_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                    ScreenData::tex_arr->replace(array,info.vertex_count);
                     break;
                     case ScreenItemType::Text:{
                         unsigned newsize = array->getVertexCount();
                         int delta = newsize - info.vertex_count;
                         if(delta == 0){
-                            ScreenData::text_arr->replace(array->getData(),info.vertex_offset,info.vertex_count);
+                            ScreenData::text_arr->replace(array,info.vertex_count);
                         }else{
                             ScreenData::text_arr->erase(info.vertex_count,info.vertex_offset);
-                            ScreenData::text_arr->insert(array->getData(),newsize,info.vertex_offset);
+                            ScreenData::text_arr->insert(array,info.vertex_offset);
                             info.vertex_count = newsize;
                             totaloffset+=delta;
                         }
