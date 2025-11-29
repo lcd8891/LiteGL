@@ -45,7 +45,7 @@ namespace LiteAPI{
         unsigned getVertexSize();
         void insert(float* _data, unsigned vertex_count);
         void insert(float* _data, unsigned vertex_count,unsigned vertex_offset);
-        void replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
+        void replaceAttribute(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count = 1);
         void replace(float* value,unsigned from_vertex,unsigned size = 1);
         void erase(unsigned vertices,unsigned offset);
         void applyMatrix4(glm::mat4 _mat, int to_attrs[3],float vertex_offset,float vertex_count);

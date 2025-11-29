@@ -12,7 +12,7 @@
 #include "../system/priv_logger.hpp"
 #include <stb_image.h>
 #include <GL/glew.h>
-#include "../buffer/buffer.hpp"
+#include "../assets/buffer.hpp"
 
 #define FROM_VOID(T,N,P) T *N = static_cast<T*>(P);
 #define GET_ACCESSOR_INDEX(N) auto index = findAttribute(primitive,N);
@@ -82,7 +82,7 @@ namespace LiteAPI{
             respath/=path;
             loadGLTF(respath);
             texture = _load_from_file("./res/models/"+path.replace_extension(".png").string());
-            PRIV::texture_buffer_set_mem(texture,"model:"+path.string());
+            PRIV::texture_buffer_set_mem(texture,0+"model:"+path.string());
         }else{
             system_logger->error() << "ModelLoader: model is not GLTF type";
         }

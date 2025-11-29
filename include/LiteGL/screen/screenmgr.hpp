@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include "screenitems.hpp"
+#include <functional>
 
 namespace LiteAPI{
     class ScreenItem;
@@ -13,16 +14,17 @@ namespace LiteAPI{
         
         public:
         ~Screen();
-        void operator()();
         void addItem(std::string _name,ScreenItem *_item);
         void update();
+        void parseData();
         void updateRelatived();
         ScreenItem* getItem(std::string _name);
     };
     namespace ScreenMGR{
         extern const glm::mat4 &screenView;
-        void set_screen(std::string _name);
-        void update_screen();
-        void render_screen();
+        void setScreen(std::string _name);
+        void updateScreen();
+        void renderScreen();
+        Screen* getCurrentScreen();
     }
 }

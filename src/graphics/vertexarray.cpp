@@ -80,7 +80,7 @@ namespace LiteAPI{
     void VertexArray::insert(float* _data, unsigned vertex_count,unsigned vertex_offset){
         arr.insert(arr.begin() + vertex_offset * vertex_size, _data, _data + vertex_size * vertex_count);
     }
-    void VertexArray::replace(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
+    void VertexArray::replaceAttribute(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
         if(attribute>=vertex_size)return;
         for(int i = 0;i< vertex_count;i++){
             arr[attribute + (i + from_vertex) * vertex_size] = value;

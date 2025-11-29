@@ -18,7 +18,6 @@ namespace PRIV{
 	namespace ScreenMGR{
         void initialize();
         void finalize();
-		LiteAPI::Screen* get_current();
 	}
 }
 
@@ -27,9 +26,9 @@ void finalize(){
 	PRIV::ScreenMGR::finalize();
 	PRIV::FontLoader::close();
 	PRIV_Window::finalize();
-	LiteAPI::ShaderBuffer::delete_all_shaders();
-	LiteAPI::TextureBuffer::delete_all_textures();
-	LiteAPI::ScreenBuffer::delete_all_screens();
+	LiteAPI::ScreenAssets::deleteAll();
+	LiteAPI::TextureAssets::deleteAll();
+	LiteAPI::ScreenAssets::deleteAll();
 	GameLDR::close();
 }
 
@@ -54,9 +53,9 @@ void static_initialize(){
 	system_logger->info() << "Font initialized...";
 }
 void check_screen(){
-	if(!PRIV::ScreenMGR::get_current()){
-		LiteAPI::ScreenBuffer::create_screen("default");
-		LiteAPI::ScreenMGR::set_screen("default");
+	if(!LiteAPI::ScreenMGR::getCurrentScreen()){
+		LiteAPI::ScreenAssets::create("default");
+		LiteAPI::ScreenMGR::setScreen("default");
 		system_logger->warn() << "No screen installed! Installing \"default\"";
 	}
 }

@@ -6,8 +6,8 @@
 #include <LiteGL/graphics/shaderconstructor.hpp>
 #include <LiteGL/graphics/mesh.hpp>
 #include <LiteGL/graphics/texture.hpp>
-#include <LiteGL/buffer/tb.hpp>
-#include <LiteGL/buffer/scrbuffer.hpp>
+#include <LiteGL/assets/tb.hpp>
+#include <LiteGL/assets/scrbuffer.hpp>
 #include "../system/priv_logger.hpp"
 #include <glm/ext.hpp>
 #include "../system/priv_cache.hpp"
@@ -29,7 +29,7 @@ namespace{
         unsigned vertex_count{0},vertex_offset{0};
         LiteAPI::ScreenItem *item;
         LiteAPI::Primitive primitive;
-        bool *modified;
+        LiteAPI::ScreenItemState *state;
         LiteAPI::Shader *shadertype;
         std::string texture_key;
     };
@@ -64,6 +64,47 @@ namespace ScreenData{
 }
 
 namespace LiteAPI{
+    void createItemData(ScreenItem *item){
+        ScreenItemRenderInfo data;
+        data.item = item;
+        
+        VertexArray *arr = item->getMesh();
+        data.primitive = item->getPrimitive();
+        data.vertex_count = arr->getVertexCount();
+        data.state = &item->getItemState();
+        *data.state = ScreenItemState::Idle;
+
+
+        switch(item->getType()){
+            case ScreenItemType::Rectangle:
+            case ScreenItemType::Line:
+            data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
+            data.shadertype=nontex_shader;
+            data.texture_key="";
+            ScreenData::screen_item_render_info.push_back(data);
+            ScreenData::nontext_arr->insert(arr->getData(),arr->getVertexCount());
+            break;
+            case ScreenItemType::Texture:
+            data.vertex_offset = ScreenData::tex_arr->getVertexCount();
+            data.shadertype=tex_shader;{
+                TextureItem *tex_item = static_cast<TextureItem*>(item);
+                data.texture_key=tex_item->getTextureKey();
+            }
+            ScreenData::screen_item_render_info.push_back(data);
+            ScreenData::tex_arr->insert(arr->getData(),arr->getVertexCount());
+            break;
+            case ScreenItemType::Text:
+            data.vertex_offset = ScreenData::text_arr->getVertexCount();
+            data.shadertype=text_shader;
+            data.texture_key="__font__";
+            ScreenData::screen_item_render_info.push_back(data);
+            ScreenData::text_arr->insert(arr->getData(),arr->getVertexCount());
+            break;
+        }
+        delete arr;
+    }
+
+
     ScreenItem::ScreenItem(vector2<int> a, color4 c,vector2<float> r):position(a),color(c),relative(r){}
     vector2<int> ScreenItem::getPosition(){
         return position;
@@ -71,15 +112,15 @@ namespace LiteAPI{
     color4 ScreenItem::getColor(){
         return color;
     }
-    bool& ScreenItem::getModified(){
-        return modified;
+    ScreenItemState& ScreenItem::getItemState(){
+        return state;
     }
     void ScreenItem::setColor(color4 _a){
-        modified=true;
+        state=ScreenItemState::Modified;
         color=_a;
     }
     void ScreenItem::setPosition(vector2<int> _a){
-        modified=true;
+        state=ScreenItemState::Modified;
         position=_a;
     }
     vector2<float> ScreenItem::getRelative(){
@@ -208,14 +249,14 @@ namespace LiteAPI{
     }
     void TextItem::setString(std::wstring str){
         this->str = str;
-        modified=true;
+        state=ScreenItemState::Modified;
     }
     float TextItem::getTextScale(){
         return scale;
     }
     void TextItem::setTextScale(float scale){
         this->scale = scale;
-        modified = true;
+        state=ScreenItemState::Modified;
     }
 
 
@@ -225,49 +266,14 @@ namespace LiteAPI{
         }
     }
 
-    void Screen::operator()(){
+    void Screen::parseData(){
         ScreenData::nontext_arr->clear();
         ScreenData::text_arr->clear();
         ScreenData::screen_item_render_info.clear();
 
         for(auto &it : this->items){
             ScreenItem *item = it.second;
-            ScreenItemRenderInfo data;
-            data.item = item;
-            VertexArray *vertices = item->getMesh();
-            std::string id = it.first;
-            data.primitive = item->getPrimitive();
-            data.vertex_count = vertices->getVertexCount();
-            data.modified = &item->getModified();
-            item->modified = false;
-            switch(item->getType()){
-                case ScreenItemType::Rectangle:
-                case ScreenItemType::Line:
-                    data.vertex_offset = ScreenData::nontext_arr->getVertexCount();
-                    data.shadertype=nontex_shader;
-                    data.texture_key="";
-                    ScreenData::screen_item_render_info.push_back(data);
-                    ScreenData::nontext_arr->insert(vertices->getData(),vertices->getVertexCount());
-                    break;
-                case ScreenItemType::Texture:
-                    data.vertex_offset = ScreenData::tex_arr->getVertexCount();
-                    data.shadertype=tex_shader;
-                    {
-                        TextureItem *tex_item = static_cast<TextureItem*>(item);
-                        data.texture_key=tex_item->getTextureKey();
-                    }
-                    ScreenData::screen_item_render_info.push_back(data);
-                    ScreenData::tex_arr->insert(vertices->getData(),vertices->getVertexCount());
-                    break;
-                case ScreenItemType::Text:
-                    data.vertex_offset = ScreenData::text_arr->getVertexCount();
-                    data.shadertype=text_shader;
-                    data.texture_key="__font__";
-                    ScreenData::screen_item_render_info.push_back(data);
-                    ScreenData::text_arr->insert(vertices->getData(),vertices->getVertexCount());
-                    break;
-            }
-            delete vertices;
+            createItemData(item);
         }
 
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
@@ -282,7 +288,7 @@ namespace LiteAPI{
             if(item->getType()==ScreenItemType::Text){
                 info.vertex_offset += totaloffset;
             }
-            if(item->modified){
+            if(*info.state == ScreenItemState::Modified){
                 VertexArray *array = item->getMesh();
                 switch(item->getType()){
                     case ScreenItemType::Line:
@@ -307,8 +313,12 @@ namespace LiteAPI{
                     break;
                 }
                 delete array;
-                item->modified = false;
+                *info.state = ScreenItemState::Idle;
             }
+        }
+        for(auto &it : this->items){
+            ScreenItem *item = it.second;
+            if(item->getItemState() == ScreenItemState::Created){createItemData(item);}
         }
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
         ScreenData::text_mesh->reload(ScreenData::text_arr);
@@ -346,7 +356,7 @@ namespace LiteAPI{
                     break;
                 }
                 delete array;
-                item->modified = false;
+                *info.state = ScreenItemState::Idle;
             }
         }
         ScreenData::nontext_mesh->reload(ScreenData::nontext_arr);
@@ -376,15 +386,15 @@ namespace LiteAPI{
 
     namespace ScreenMGR{
         const glm::mat4 &screenView(screenView);
-        void set_screen(std::string _name){
+        void setScreen(std::string _name){
             system_logger->info() << "Setup screendata for " << _name;
-            current = ScreenBuffer::get_screen(_name);
-            (*current)();
+            current = ScreenAssets::get(_name);
+            current->parseData();
         };
-        void update_screen(){
+        void updateScreen(){
             current->update();
         }
-        void render_screen(){
+        void renderScreen(){
             for(auto &info : ScreenData::screen_item_render_info){
                 info.shadertype->bind();
                 info.shadertype->uniformMatrix("view",::screenView);
@@ -394,10 +404,13 @@ namespace LiteAPI{
                     PRIV::FontLoader::glyph_atlas_ptr->use();
                     ScreenData::text_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
                 }else{
-                    TextureBuffer::get_texture(info.texture_key)->use();
+                    TextureAssets::get(info.texture_key)->use();
                     ScreenData::tex_mesh->drawPart(info.primitive,info.vertex_count,info.vertex_offset);
                 }
             }
+        }
+        Screen* getCurrentScreen(){
+            return current;
         }
     }
 }
@@ -414,9 +427,6 @@ namespace PRIV{
             glm::mat4 mat = glm::ortho(0.f,(float)window_size.x,(float)window_size.y,0.f);
             screenView = mat;
         }
-        LiteAPI::Screen* get_current(){
-            return current;
-        }
         void initialize(){
             ScreenData::nontext_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,0});
             ScreenData::text_mesh = new LiteAPI::DynamicMesh(nullptr,0,(int[]){2,4,2,0});
@@ -424,6 +434,7 @@ namespace PRIV{
             ScreenData::nontext_arr = new LiteAPI::VertexArray(6);
             ScreenData::text_arr = new LiteAPI::VertexArray(8);
             ScreenData::tex_arr = new LiteAPI::VertexArray(8);
+
             system_logger->info() << "ScreenMGR initializing...";
             nontex_shader = Cache::load_chached_shader("nontex_shader");
             tex_shader = Cache::load_chached_shader("tex_shader");
@@ -431,10 +442,21 @@ namespace PRIV{
             if(!(nontex_shader) || !(tex_shader) || !(text_shader)){
                 xuirecompile_shaders();
             }
+            
             system_logger->info() << "ScreenMGR initalized!";
         }
         void finalize(){
             delete nontex_shader;
+            delete tex_shader;
+            delete text_shader;
+            
+            delete ScreenData::nontext_arr;
+            delete ScreenData::tex_arr;
+            delete ScreenData::text_arr;
+            
+            delete ScreenData::nontext_mesh;
+            delete ScreenData::tex_mesh;
+            delete ScreenData::text_mesh;
         }
 	}
 }

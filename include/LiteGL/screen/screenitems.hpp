@@ -10,14 +10,17 @@ namespace LiteAPI{
     enum class ScreenItemType{
         Rectangle,Line,Texture,Text
     };
+    enum class ScreenItemState{
+        Created,Modified,Idle
+    };
     class ScreenItem{
         protected:
         vector2<int> position;
         color4 color;
         vector2<float> relative;
+        ScreenItemState state = ScreenItemState::Created;
 
         public:
-        bool modified = true;
         ScreenItem(vector2<int> a, color4 c,vector2<float> r);
 
         virtual VertexArray* getMesh() = 0;
@@ -26,7 +29,7 @@ namespace LiteAPI{
 
         vector2<int> getPosition();
         color4 getColor();
-        bool& getModified();
+        ScreenItemState& getItemState();
         vector2<float> getRelative();
         bool relativeIsZero();
         template<typename T>
