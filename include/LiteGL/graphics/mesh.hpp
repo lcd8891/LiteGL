@@ -22,10 +22,10 @@ namespace LiteAPI{
         uint64 vertex_size;
         public:
         Mesh(const float* _buffer,uint64 _vertices,const int* _attr);
-        Mesh(VertexArray* array, const int* _attr);
+        Mesh(const VertexArray* array, const int* _attr);
         ~Mesh();
         void reload(const float* _buffer,uint64 _vertices);
-        void reload(VertexArray* array);
+        void reload(const VertexArray* array);
         void draw(Primitive _primitive);
         void drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
     };
@@ -38,12 +38,12 @@ namespace LiteAPI{
         uint64 vertex_size;
         public:
         DynamicMesh(const float* _buffer,uint64 _vertices,const int* _attr);
-        DynamicMesh(VertexArray* array, const int* _attr);
+        DynamicMesh(const VertexArray* array, const int* _attr);
         ~DynamicMesh();
         void reload(const float* _buffer,uint64 _vertices);
-        void reload(VertexArray* array);
+        void reload(const VertexArray* array);
         void reloadPart(const float* _buffer,uint64 _vertices,uint64 _offset = 0);
-        void reloadPart(VertexArray* array,uint64 _offset);
+        void reloadPart(const VertexArray* array,uint64 _offset);
         void draw(Primitive _primitive);
         void drawPart(Primitive _primitive,uint64 _vertices,uint64 _offset = 0);
     };

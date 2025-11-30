@@ -1,19 +1,19 @@
 #include <LiteGL/buffer/buffers.hpp>
 #include <LiteGL/graphics/graphics.hpp>
 #include <LiteGL/screen/screenmgr.hpp>
-#define LOGGER_GROUP "buffers"
+#include <LiteGL/graphics/model.hpp>
+
 #include "../system/priv_logger.hpp"
-#include <map>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#include <GL/glew.h>
+#include "../graphics/graphics_tools.hpp"
+
+#include <unordered_map>
 #include <stdexcept>
 
 namespace{
-std::map<std::string,LiteAPI::Texture*> texture_map;
-std::map<std::string,LiteAPI::Shader*> shader_map;
-std::map<std::string,LiteAPI::Screen*> screen_map;
-
+    std::unordered_map<std::string,LiteAPI::Texture*> texture_map;
+    std::unordered_map<std::string,LiteAPI::Shader*> shader_map;
+    std::unordered_map<std::string,LiteAPI::Screen*> screen_map;
+    std::unordered_map<std::string,LiteAPI::Model*> model_map;
 }
 
 #define _B_NEW(BUF,OBJ) auto it = BUF.find(_name); if(it == BUF.end()){BUF[_name] = OBJ;}else{delete it->second;it->second = OBJ;system_logger->warn() << ("overriding resource: "+_name);} return OBJ;
@@ -21,42 +21,10 @@ std::map<std::string,LiteAPI::Screen*> screen_map;
 #define _B_DEL(BUF) auto it = BUF.find(_name);if(it == BUF.end()){system_logger->warn() << ("trying to delete unknown resource: "+_name);}else{delete it->second;BUF.erase(_name);}
 #define _B_CLR(BUF) for(auto &it : BUF){delete it.second;}BUF.clear();
 
-LiteAPI::Texture* _load_from_file(const std::string _path){
-    unsigned int textureID;
-    glGenTextures(1,&textureID);
-    int width,heigth,component;
-
-    unsigned char* imagedata = stbi_load(_path.c_str(),&width,&heigth,&component,0);
-    if(imagedata){
-        int format;
-        switch(component){
-            case 1:
-            format = GL_RED;
-            break;
-            case 3:
-            format = GL_RGB;
-            break;
-            case 4:
-            format = GL_RGBA;
-        }
-        glBindTexture(GL_TEXTURE_2D,textureID);
-        glTexImage2D(GL_TEXTURE_2D,0,format,width,heigth,0,format,GL_UNSIGNED_BYTE,imagedata);
-        glGenerateMipmap(GL_TEXTURE_2D);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        stbi_image_free(imagedata);
-        return new LiteAPI::Texture(textureID);
-    }else{
-        throw std::runtime_error("Couldn't load texture: "+_path);
-    }
-}
-
 namespace LiteAPI{
     namespace TextureAssets{
         Texture* loadFromRes(std::string _path, std::string _name){
-            Texture* texture = _load_from_file("./res/textures/"+_path+".png");
+            Texture* texture = _load_texture_from_file("./res/textures/"+_path+".png");
             _B_NEW(texture_map,texture)
         }
         Texture* get(std::string _name){
@@ -97,6 +65,21 @@ namespace LiteAPI{
         }
         void deleteAll(){
             _B_CLR(shader_map);
+        }
+    }
+    namespace ModelAssets{
+        Model* loadFromRes(std::string _name,std::string _path){
+            Model* model = new Model(_path);
+            _B_NEW(model_map,model);
+        }
+        Model* get(std::string _name){
+            _B_GET(model_map);
+        }
+        void deleteOne(std::string _name){
+            _B_DEL(model_map);
+        }
+        void deleteAll(){
+            _B_CLR(model_map);
         }
     }
 }

@@ -71,7 +71,7 @@ namespace LiteAPI{
     }
             
     VertexArray::VertexArray(unsigned vertex_size):vertex_size(vertex_size){}
-    unsigned VertexArray::getVertexSize(){
+    unsigned VertexArray::getVertexSize() const {
         return vertex_size;
     }
     void VertexArray::insert(float* _data, unsigned vertex_count) {
@@ -79,6 +79,19 @@ namespace LiteAPI{
     }
     void VertexArray::insert(float* _data, unsigned vertex_count,unsigned vertex_offset){
         arr.insert(arr.begin() + vertex_offset * vertex_size, _data, _data + vertex_size * vertex_count);
+    }
+    void VertexArray::insert(VertexArray *another_array,unsigned vertex_offset){
+        if(vertex_size != another_array->getVertexSize()){
+            system_logger->error() << "VertexArray::insert: another_array not compatible with this array to insert";
+            return;
+        }
+        unsigned other_count = another_array->getVertexCount(); 
+        const float* data = another_array->getData();
+        arr.insert(
+            arr.begin() + vertex_offset * vertex_size,
+            data,
+            data + other_count * vertex_size
+        );
     }
     void VertexArray::replaceAttribute(float value,unsigned attribute,unsigned from_vertex,unsigned vertex_count){
         if(attribute>=vertex_size)return;
@@ -89,19 +102,50 @@ namespace LiteAPI{
     void VertexArray::replace(float* value,unsigned from_vertex,unsigned size){
         std::copy(value,value + size * vertex_size,arr.begin() + from_vertex * vertex_size);
     }
+    void VertexArray::replace(VertexArray *one, unsigned vertex_offset){
+        if(vertex_size != one->getVertexSize()){
+            system_logger->error() << "VertexArray::insert: another_array not compatible with this array to insert";return;
+        }
+        unsigned replace_count = one->getVertexCount();
+        unsigned available_space = getVertexCount() - vertex_offset;
+        
+        if (replace_count > available_space) {
+            system_logger->error() << "VertexArray::replace: Not enough space for replacement";
+            return;
+        }
+        
+        const float* data = one->getData();
+        std::copy(
+            data,
+            data + replace_count * vertex_size,
+            arr.begin() + vertex_offset * vertex_size
+        );
+    }
     void VertexArray::erase(unsigned vertices,unsigned offset){
         arr.erase(arr.begin() + vertex_size * offset,arr.begin() + vertex_size * offset + vertex_size * vertices);
+    }
+    VertexArray* VertexArray::subarray(unsigned size,unsigned offset){
+        VertexArray *tmp = new VertexArray(vertex_size);
+        tmp->reserve(size);
+        float* data = tmp->getData();
+        std::copy(arr.begin() + offset * vertex_size,
+                    arr.begin() + offset * vertex_size + size * vertex_size,
+                    data);
+        return tmp;
     }
     float* VertexArray::getData(){
         return arr.data();
     }
-    void VertexArray::reserver(unsigned _vertices){
-        arr.reserve(_vertices*vertex_size);
+    const float* VertexArray::getData() const {
+        return arr.data();
+    }
+    void VertexArray::reserve(unsigned _vertices){
+        arr.reserve(_vertices * vertex_size);
     }
     void VertexArray::clear(){
         arr.clear();
     }
-    unsigned VertexArray::getVertexCount(){
+    unsigned VertexArray::getVertexCount() const {
         return arr.size() / vertex_size;
     }
     VertexArray::VertexIterator VertexArray::begin(){

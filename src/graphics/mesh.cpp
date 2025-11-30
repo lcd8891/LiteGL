@@ -24,7 +24,7 @@ LiteAPI::Mesh::Mesh(const float* _buffer,uint64 _vertices,const int* _attr):vert
 
 	glBindVertexArray(0);
 }
-LiteAPI::Mesh::Mesh(VertexArray* array, const int* _attr){
+LiteAPI::Mesh::Mesh(const VertexArray* array, const int* _attr){
     vertex_size = array->getVertexSize();
     const float* _buffer = array->getData();
     vertices = array->getVertexCount();
@@ -55,7 +55,7 @@ void LiteAPI::Mesh::reload(const float* _buffer,uint64 _vertices){
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_STATIC_DRAW);
 }
-void LiteAPI::Mesh::reload(VertexArray* array){
+void LiteAPI::Mesh::reload(const VertexArray* array){
 	this->vertices = array->getVertexCount();
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -95,7 +95,7 @@ LiteAPI::DynamicMesh::DynamicMesh(const float* _buffer,uint64 _vertices,const in
     
 	glBindVertexArray(0);
 }
-LiteAPI::DynamicMesh::DynamicMesh(VertexArray* array, const int* _attr){
+LiteAPI::DynamicMesh::DynamicMesh(const VertexArray* array, const int* _attr){
     vertex_size = array->getVertexSize();
     const float* _buffer = array->getData();uint64 _vertices = array->getVertexCount();
     
@@ -126,7 +126,7 @@ void LiteAPI::DynamicMesh::reload(const float* _buffer,uint64 _vertices){
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _vertices, _buffer, GL_DYNAMIC_DRAW);
 }
-void LiteAPI::DynamicMesh::reload(VertexArray* array){
+void LiteAPI::DynamicMesh::reload(const VertexArray* array){
     this->vertices = array->getVertexCount();
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -138,7 +138,7 @@ void LiteAPI::DynamicMesh::reloadPart(const float* _buffer,uint64 _vertices,uint
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(float) * vertex_size * _offset, _vertices * vertex_size * sizeof(float), _buffer);
 }
-void LiteAPI::DynamicMesh::reloadPart(VertexArray* array,uint64 _offset){
+void LiteAPI::DynamicMesh::reloadPart(const VertexArray* array,uint64 _offset){
 	this->vertices = array->getVertexCount();
 	glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);

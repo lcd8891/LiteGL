@@ -123,7 +123,7 @@ namespace PRIV_Window{
 		});
 		glfwSetWindowFocusCallback(window,[](GLFWwindow *window,int focused){
 			_focused = focused;
-			if(Callbacks::focus == nullptr) Callbacks::focus(_focused);
+			if(Callbacks::focus) Callbacks::focus(_focused);
 			if(_locked){
 				LiteAPI::Window::setMouseLock(false);
 			}
