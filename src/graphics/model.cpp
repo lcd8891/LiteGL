@@ -2,87 +2,103 @@
 #include <LiteGL/graphics/vertexarray.hpp>
 #include <LiteGL/graphics/mesh.hpp>
 #include <LiteGL/graphics/texture.hpp>
+
 #include <fastgltf/core.hpp>
 #include <fastgltf/types.hpp>
 #include <fastgltf/util.hpp>
 #include <fastgltf/glm_element_traits.hpp>
 #include <fastgltf/tools.hpp>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "../system/priv_logger.hpp"
-#include <stb_image.h>
-#include <GL/glew.h>
 #include "../assets/buffer.hpp"
+#include "graphics_tools.hpp"
 
 #define FROM_VOID(T,N,P) T *N = static_cast<T*>(P);
 #define GET_ACCESSOR_INDEX(N) auto index = findAttribute(primitive,N);
 
 namespace{
+    std::string make_str(const std::pmr::string &str){
+        return std::string(str.data(),str.size());
+    }
     std::optional<std::size_t> findAttribute(const fastgltf::Primitive& primitive, const std::string& name){
         for(const auto& attr : primitive.attributes){
-            if(std::string(attr.name) == name){
+            if(make_str(attr.name) == name){
                 return attr.accessorIndex;
             }
         }
         return std::nullopt;
     }
-    LiteAPI::Texture* _load_from_file(const std::string _path){
-        unsigned int textureID;
-        glGenTextures(1,&textureID);
-        int width,heigth,component;
-
-        unsigned char* imagedata = stbi_load(_path.c_str(),&width,&heigth,&component,0);
-        if(imagedata){
-            int format;
-            switch(component){
-                case 1:
-                format = GL_RED;
-                break;
-                case 3:
-                format = GL_RGB;
-                break;
-                case 4:
-                format = GL_RGBA;
-            }
-            glBindTexture(GL_TEXTURE_2D,textureID);
-            glTexImage2D(GL_TEXTURE_2D,0,format,width,heigth,0,format,GL_UNSIGNED_BYTE,imagedata);
-            glGenerateMipmap(GL_TEXTURE_2D);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            stbi_image_free(imagedata);
-            return new LiteAPI::Texture(textureID);
-        }else{
-            throw std::runtime_error("Couldn't load texture: "+_path);
+    const int MODEL_ATTRIBUTES[] = {3, 2, 4, 0};
+    glm::mat4 getNodeTransform(const fastgltf::Node& node) {
+        if (std::holds_alternative<fastgltf::math::fmat4x4>(node.transform)) {
+            const auto& mat = std::get<fastgltf::math::fmat4x4>(node.transform);
+            return glm::make_mat4(mat.data());
+        } else {
+            const auto& trs = std::get<fastgltf::TRS>(node.transform);
+            glm::vec3 t(trs.translation[0], trs.translation[1], trs.translation[2]);
+            glm::quat r(trs.rotation[3], trs.rotation[0], trs.rotation[1], trs.rotation[2]);
+            glm::vec3 s(trs.scale[0], trs.scale[1], trs.scale[2]);
+            return glm::translate(glm::mat4(1.0f), t) * glm::mat4_cast(r) * glm::scale(glm::mat4(1.0f), s);
         }
     }
 
-    const int MODEL_ATTRIBUTES[] = {3, 2, 4, 0};
 }
-//Attribute: position uv color
 
 namespace LiteAPI{
     glm::vec3 Model::AnimationChannel::interpolatePosition(float animationTime) const {
-        
+        if (keyFrames.size() == 1) return keyFrames[0].translation;
+        for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+            if (animationTime < keyFrames[i + 1].timestamp) {
+                float delta = keyFrames[i + 1].timestamp - keyFrames[i].timestamp;
+                float factor = (animationTime - keyFrames[i].timestamp) / delta;
+                return glm::mix(keyFrames[i].translation, keyFrames[i + 1].translation, factor);
+            }
+        }
+        return keyFrames.back().translation;
     }
 
     glm::quat Model::AnimationChannel::interpolateRotation(float animationTime) const {
-        
+        if (keyFrames.size() == 1) return keyFrames[0].rotation;
+        for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+            if (animationTime < keyFrames[i + 1].timestamp) {
+                float delta = keyFrames[i + 1].timestamp - keyFrames[i].timestamp;
+                float factor = (animationTime - keyFrames[i].timestamp) / delta;
+                return glm::slerp(keyFrames[i].rotation, keyFrames[i + 1].rotation, factor);
+            }
+        }
+        return keyFrames.back().rotation;
     }
 
     glm::vec3 Model::AnimationChannel::interpolateScale(float animationTime) const {
-        
+        if (keyFrames.size() == 1) return keyFrames[0].scale;
+        for (size_t i = 0; i < keyFrames.size() - 1; ++i) {
+            if (animationTime < keyFrames[i + 1].timestamp) {
+                float delta = keyFrames[i + 1].timestamp - keyFrames[i].timestamp;
+                float factor = (animationTime - keyFrames[i].timestamp) / delta;
+                return glm::mix(keyFrames[i].scale, keyFrames[i + 1].scale, factor);
+            }
+        }
+        return keyFrames.back().scale;
     }
-
+    Model::AnimationKeyFrame Model::AnimationChannel::interpolate(float animationTime) const {
+        AnimationKeyFrame result;
+        result.timestamp = animationTime;
+        result.translation = interpolatePosition(animationTime);
+        result.rotation = interpolateRotation(animationTime);
+        result.scale = interpolateScale(animationTime);
+        return result;
+    }
 
     Model::Model(std::filesystem::path path){
         if(path.extension() == ".gltf" || path.extension() == ".glb"){
             std::filesystem::path respath = "./res/models/";
             respath/=path;
             loadGLTF(respath);
-            texture = _load_from_file("./res/models/"+path.replace_extension(".png").string());
-            PRIV::texture_buffer_set_mem(texture,0+"model:"+path.string());
+            texture = _load_texture_from_file("./res/models/"+path.replace_extension(".png").string());
+            PRIV::texture_buffer_set_mem(texture,"__model:"+path.string());
         }else{
             system_logger->error() << "ModelLoader: model is not GLTF type";
         }
@@ -102,14 +118,78 @@ namespace LiteAPI{
             return;
         }
         model = std::move(loaded.get());
+        loadSkins(&model);
         fastgltf::iterateSceneNodes(model,0,fastgltf::math::fmat4x4(),
             [&](fastgltf::Node &node,fastgltf::math::fmat4x4 matrix){
                 processNode(&model,&node,&matrix,glm::mat4(1));
             }
         );
+        loadAnimations(&model);
+        boneTransforms.resize(bones.size(), glm::mat4(1.0f));
         refreshVertexArray();
+        original_vertices = vertices;
     }
+    void Model::loadSkins(void* gltfModel) {
+        FROM_VOID(fastgltf::Asset, model, gltfModel);
+        
+        for (const auto& skin : model->skins) {
+            if (skin.joints.empty()) continue;
+            std::vector<glm::mat4> inverseBindMatrices;
+            if (skin.inverseBindMatrices.has_value()) {
+                const auto& accessor = model->accessors[skin.inverseBindMatrices.value()];
+                fastgltf::iterateAccessor<glm::mat4>(*model, accessor, [&](glm::mat4 matrix) {
+                    inverseBindMatrices.push_back(matrix);
+                });
+            }
+            for (size_t i = 0; i < skin.joints.size(); ++i) {
+                auto nodeIndex = skin.joints[i];
+                if (nodeIndex >= model->nodes.size()) continue;
 
+                const auto& node = model->nodes[nodeIndex];
+                std::string boneName = !node.name.empty() ? make_str(node.name)
+                                                        : "bone_" + std::to_string(nodeIndex);
+
+                glm::mat4 ibm = (i < inverseBindMatrices.size()) ? inverseBindMatrices[i] : glm::mat4(1.0f);
+                int boneIndex = addBone(boneName, ibm, getNodeTransform(node));
+                int parentIndex = -1;
+                for (const auto& potentialParent : skin.joints) {
+                    const auto& potentialParentNode = model->nodes[potentialParent];
+                    for (auto childIdx : potentialParentNode.children) {
+                        if (childIdx == nodeIndex) {
+                            std::string parentName = !model->nodes[potentialParent].name.empty() 
+                                ? make_str(model->nodes[potentialParent].name)
+                                : "bone_" + std::to_string(potentialParent);
+                            
+                            auto parentIt = boneMapping.find(parentName);
+                            if (parentIt != boneMapping.end()) {
+                                parentIndex = parentIt->second;
+                                break;
+                            }
+                        }
+                    }
+                    if (parentIndex != -1) break;
+                }
+                bones[boneIndex].parentIndex = parentIndex;
+                if (parentIndex != -1) {
+                    bones[parentIndex].children.push_back(boneIndex);
+                }
+            }
+        }
+    }
+    int Model::addBone(const std::string& name, const glm::mat4& inverseBindMatrix, const glm::mat4& localTransform) {
+        auto it = boneMapping.find(name);
+        if (it != boneMapping.end()) {
+            return it->second;
+        }
+        Bone bone;
+        bone.name = name;
+        bone.inverseBindMatrix = inverseBindMatrix;
+        bone.transform = localTransform;
+        int index = bones.size();
+        bones.push_back(bone);
+        boneMapping[name] = index;
+        return index;
+    }
     void Model::processNode(void *model_ptr,void *node_ptr,void *matrix_ptr,const glm::mat4& parentTransform) {
         FROM_VOID(fastgltf::Node,node,node_ptr)
         FROM_VOID(fastgltf::math::fmat4x4,matrix,matrix_ptr)
@@ -246,7 +326,10 @@ namespace LiteAPI{
         }
     }
     void Model::refreshVertexArray(){
-        if(vertarr)delete vertarr;
+        if(vertarr){
+            delete vertarr;
+            vertarr = nullptr;
+        }
         vertarr = new LiteAPI::VertexArray(9);
         std::vector<float> data;
         data.reserve(vertices.size() * 9);
@@ -266,21 +349,227 @@ namespace LiteAPI{
         vertarr->insert(data.data(), vertices.size());
         modified = false;
     }
+    void Model::addBoneHierarchy(void* modelptr, int nodeIndex, int parentIndex) {
+        FROM_VOID(fastgltf::Asset, model, modelptr)
+        const auto& node = model->nodes[nodeIndex];
+        std::string boneName = !node.name.empty() ? make_str(node.name)
+                                                : "bone_" + std::to_string(nodeIndex);
+        int boneIndex = findBone(boneName);
+        if (boneIndex == -1) {
+            boneIndex = addBone(boneName, glm::mat4(1.0f), getNodeTransform(node));
+        } else {
+            bones[boneIndex].transform = getNodeTransform(node);
+        }
+        bones[boneIndex].parentIndex = parentIndex;
+        if (parentIndex >= 0) {
+            bones[parentIndex].children.push_back(boneIndex);
+        }
+        for (auto childNodeIndex : node.children) {
+            addBoneHierarchy(model, childNodeIndex, boneIndex);
+        }
+    }
     void Model::loadAnimations(void* gltfModel){
-
+        FROM_VOID(fastgltf::Asset,model,gltfModel);
+        for (const auto& fastgltfAnim : model->animations) {
+            ModelAnimation animation;
+            animation.name = make_str(fastgltfAnim.name);
+            animation.duration = 0.0f;
+            std::unordered_map<int, std::vector<std::pair<fastgltf::AnimationPath, const fastgltf::AnimationChannel*>>> channelsByBone;
+            for (const auto& channel : fastgltfAnim.channels) {
+                if (!channel.nodeIndex.has_value()) continue;
+                auto nodeIndex = channel.nodeIndex.value();
+                if (nodeIndex >= model->nodes.size()) continue;
+                const auto& node = model->nodes[nodeIndex];
+                std::string boneName;
+                if(!node.name.empty()){
+                    boneName = make_str(node.name);
+                }else{
+                    boneName = "bone_" + std::to_string(nodeIndex);
+                }
+                int boneIndex = findBone(boneName);
+                if (boneIndex == -1) {
+                    boneIndex = addBone(boneName);
+                }
+                const auto& sampler = fastgltfAnim.samplers[channel.samplerIndex];
+                std::vector<float> timestamps;
+                const auto& inputAccessor = model->accessors[sampler.inputAccessor];
+                fastgltf::iterateAccessor<float>(*model, inputAccessor, [&](float time) {
+                    timestamps.push_back(time);
+                    animation.duration = std::max(animation.duration, time);
+                });
+                AnimationChannel animChannel;
+                animChannel.boneName = boneName;
+                animChannel.boneIndex = boneIndex;
+                const auto& outputAccessor = model->accessors[sampler.outputAccessor];
+                
+                switch (channel.path) {
+                    case fastgltf::AnimationPath::Translation: {
+                        std::vector<glm::vec3> translations;
+                        fastgltf::iterateAccessor<glm::vec3>(*model, outputAccessor, [&](glm::vec3 value) {
+                            translations.push_back(value);
+                        });
+                        
+                        for (size_t i = 0; i < timestamps.size() && i < translations.size(); ++i) {
+                            AnimationKeyFrame keyFrame;
+                            keyFrame.timestamp = timestamps[i];
+                            keyFrame.translation = translations[i];
+                            keyFrame.rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+                            keyFrame.scale = glm::vec3(1.0f);
+                            animChannel.keyFrames.push_back(keyFrame);
+                        }
+                        break;
+                    }
+                    case fastgltf::AnimationPath::Rotation: {
+                        std::vector<glm::vec4> rotations;
+                        fastgltf::iterateAccessor<glm::vec4>(*model, outputAccessor, [&](glm::vec4 value) {
+                            rotations.push_back(glm::vec4(value.w, value.x, value.y, value.z));
+                        });
+                        
+                        for (size_t i = 0; i < timestamps.size() && i < rotations.size(); ++i) {
+                            AnimationKeyFrame keyFrame;
+                            keyFrame.timestamp = timestamps[i];
+                            keyFrame.translation = glm::vec3(0.0f);
+                            keyFrame.rotation = glm::quat(rotations[i].w, rotations[i].x, rotations[i].y, rotations[i].z);
+                            keyFrame.scale = glm::vec3(1.0f);
+                            animChannel.keyFrames.push_back(keyFrame);
+                        }
+                        break;
+                    }
+                    case fastgltf::AnimationPath::Scale: {
+                        std::vector<glm::vec3> scales;
+                        fastgltf::iterateAccessor<glm::vec3>(*model, outputAccessor, [&](glm::vec3 value) {
+                            scales.push_back(value);
+                        });
+                        
+                        for (size_t i = 0; i < timestamps.size() && i < scales.size(); ++i) {
+                            AnimationKeyFrame keyFrame;
+                            keyFrame.timestamp = timestamps[i];
+                            keyFrame.translation = glm::vec3(0.0f);
+                            keyFrame.rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+                            keyFrame.scale = scales[i];
+                            animChannel.keyFrames.push_back(keyFrame);
+                        }
+                        break;
+                    }
+                    default:
+                        continue;
+                }
+                
+                if (!animChannel.keyFrames.empty()) {
+                    animation.channels.push_back(animChannel);
+                }
+            }
+            
+            if (!animation.channels.empty()) {
+                animations[animation.name] = animation;
+            }
+        }
+    }
+    void Model::update(float deltaTime) {
+        if (!isPlaying || currentAnimation.empty()) return;
+        auto it = animations.find(currentAnimation);
+        if (it == animations.end()) {
+            stopAnimation();
+            return;
+        }
+        auto& animation = it->second;
+        animation.currentTime += deltaTime;
+        if (animation.currentTime > animation.duration) {
+            animation.currentTime = fmod(animation.currentTime, animation.duration);
+        }
+        updateBoneTransforms(animation.currentTime);
+        applyAnimationToVertices();
+        modified = true;
     }
 
+
     void Model::updateBoneTransforms(float animationTime){
+        if (currentAnimation.empty()) return;
+
+        auto it = animations.find(currentAnimation);
+        if (it == animations.end()) return;
+
+        const auto& animation = it->second;
+        boneTransforms.resize(bones.size(),glm::mat4(1));
+        for (size_t i = 0; i < bones.size(); ++i) {
+            if (bones[i].parentIndex == -1) {
+                computeBoneTransform(animation, i, animationTime, glm::mat4(1.0f));
+            }
+        }
+    }
+    void Model::computeBoneTransform(const ModelAnimation& animation, int boneIndex, float animationTime, const glm::mat4& parentTransform) {
+        if (boneIndex < 0 || boneIndex >= static_cast<int>(bones.size())) return;
+        auto& bone = bones[boneIndex];
+        glm::mat4 localTransform = bone.transform;
+        for (const auto& ch : animation.channels) {
+            if (ch.boneIndex != boneIndex || ch.keyFrames.empty()) continue;
+            auto kf = ch.interpolate(animationTime);
+            glm::mat4 translationMat = glm::translate(glm::mat4(1.0f), kf.translation);
+            glm::mat4 rotationMat = glm::mat4_cast(kf.rotation);
+            glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), kf.scale);
+            
+            localTransform = translationMat * rotationMat * scaleMat;
+            break;
+        }
+        glm::mat4 globalTransform = parentTransform * localTransform;
+        boneTransforms[boneIndex] = globalTransform * bone.inverseBindMatrix;
         
+        for (int childIndex : bone.children) {
+            computeBoneTransform(animation, childIndex, animationTime, globalTransform);
+        }
     }
 
     void Model::applyAnimationToVertices(){
+        if (boneTransforms.empty()) return;
+        
+        for (size_t i = 0; i < vertices.size(); ++i) {
+            auto& src = original_vertices[i];
+            auto& dst = vertices[i];
+            glm::vec3 animatedPosition = glm::vec3(0.0f);
+            glm::vec3 animatedNormal = glm::vec3(0.0f);
 
+            for (int j = 0; j < 4; ++j) {
+                if (src.boneIndices[j] >= 0 && src.boneIndices[j] < boneTransforms.size()) {
+                    float weight = src.boneWeight[j];
+                    const auto& transform = boneTransforms[src.boneIndices[j]];
+                    animatedPosition += weight * (transform * glm::vec4(src.position, 1.0f));
+                    glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(transform)));
+                    animatedNormal += weight * (normalMatrix * src.normal);
+                }
+            }
+            dst.position = animatedPosition;
+            dst.normal = glm::normalize(animatedNormal);
+        }
     }
 
     int Model::findBone(const std::string& name){
-        
+        auto it = boneMapping.find(name);
+        return it != boneMapping.end() ? it->second : -1;
     }
+
+    void Model::playAnimation(const std::string& name) {
+        if (animations.find(name) != animations.end()) {
+            currentAnimation = name;
+            isPlaying = true;
+            animations[name].playing = true;
+            animations[name].currentTime = 0.0f;
+        } else {
+            system_logger->warn() << "Animation not found: " << name;
+        }
+    }
+    void Model::stopAnimation() {
+        isPlaying = false;
+        if (!currentAnimation.empty()) {
+            auto it = animations.find(currentAnimation);
+            if (it != animations.end()) {
+                it->second.playing = false;
+            }
+        }
+    }
+    void Model::setAnimation(std::string name) {
+        playAnimation(name);
+    }
+
     Texture* Model::getModelTexture(){
         return texture;
     }
@@ -304,16 +593,11 @@ namespace LiteAPI{
     }
 
     void Model::updateModelMesh(DynamicMesh* mesh){
-        if(mesh && !boneTransform.empty()){
-            applyAnimationToVertices();
+        if(mesh && !boneTransforms.empty()){
+            applyAnimationToVertices(); 
         }
     }
-
-    void Model::getBone(std::string _id){
-        
-    }
-
-    void Model::setAnimation(std::string name){
-
+    void Model::refreshDynamicMesh(DynamicMesh *mesh){
+        mesh->reload(vertarr);
     }
 }

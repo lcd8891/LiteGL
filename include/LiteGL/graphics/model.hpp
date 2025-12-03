@@ -11,6 +11,7 @@
 namespace LiteAPI{
     class VertexArray;
     class Texture;
+    class DynamicMesh;
     class Model{
         public:
         struct Bone{
@@ -28,17 +29,18 @@ namespace LiteAPI{
         };
         struct AnimationChannel{
             std::string boneName;
-            std::vector<AnimationKeyFrame> positionKeys;
-            std::vector<AnimationKeyFrame> rotationKeys;
-            std::vector<AnimationKeyFrame> scaleKeys;
+            int boneIndex = -1;
+            std::vector<AnimationKeyFrame> keyFrames;
+
             glm::vec3 interpolatePosition(float animationTime) const;
             glm::quat interpolateRotation(float animationTime) const;
             glm::vec3 interpolateScale(float animationTime) const;
+            AnimationKeyFrame interpolate(float animationTime) const;
         };
         struct ModelAnimation{
             std::string name;
-            float duration;
-            float tps = 24.f;
+            float duration = 0.f;
+            float tps = 1.f;
             std::vector<AnimationChannel> channels;
             bool playing = false;
             float currentTime = 0;
@@ -60,7 +62,8 @@ namespace LiteAPI{
         std::unordered_map<std::string,int> boneMapping;
         std::vector<Bone> bones;
         std::vector<Vertex> vertices;
-        std::vector<glm::mat4> boneTransform;
+        std::vector<Vertex> original_vertices;
+        std::vector<glm::mat4> boneTransforms;
         std::string currentAnimation;
         bool isPlaying = 0, modified = false;
         
@@ -68,11 +71,20 @@ namespace LiteAPI{
         void processNode(void *model_ptr,void *node_ptr,void *matrix_ptr,const glm::mat4& parentTransform);
         void processMesh(void *model_ptr, void *mesh_ptr);
         void loadAnimations(void* gltfModel);
+        void loadSkins(void* gltfModel);
 
         void updateBoneTransforms(float animationTime);
         void applyAnimationToVertices();
         void refreshVertexArray();
         int findBone(const std::string& name);
+        int addBone(const std::string& name, const glm::mat4& inverseBindMatrix = glm::mat4(1.0f), const glm::mat4& localTransform = glm::mat4(1.0f));
+        void playAnimation(const std::string& name);
+        void stopAnimation();
+        void addBoneHierarchy(void* modelptr, int nodeIndex, int parentIndex);
+
+        void updateAnimation(float deltaTime);
+        AnimationKeyFrame getInterpolatedKeyFrame(const AnimationChannel& channel, float animationTime) const;
+        void computeBoneTransform(const ModelAnimation& animation, int boneIndex, float animationTime, const glm::mat4& parentTransform);
 
         public:
         Model(std::filesystem::path path);
@@ -82,8 +94,12 @@ namespace LiteAPI{
         Mesh* createStaticMesh();
         Texture* getModelTexture();
         void updateModelMesh(DynamicMesh* mesh);
-        void getBone(std::string _id);
 
         void setAnimation(std::string name);
+        void update(float deltaTime);
+        void refreshDynamicMesh(DynamicMesh *mesh);
+
+        const std::vector<Bone>& getBones() const { return bones; }
+        const std::unordered_map<std::string, ModelAnimation>& getAnimations() const { return animations; }
     };
 }
