@@ -29,7 +29,8 @@ add_library(lite-graphic OBJECT src/graphics/shaderconstructor.cpp
                     src/graphics/fontloader.cpp
                     src/graphics/model.cpp
                     src/graphics/camera.cpp
-                    src/graphics/renderctl.cpp)
+                    src/graphics/renderctl.cpp
+                    src/graphics/graphics_tools.cpp)
 add_library(lite-window OBJECT src/window/window.cpp src/window/exception.cpp)
 add_library(lite-system OBJECT src/system/logger.cpp 
                     src/system/time.cpp 

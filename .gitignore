@@ -4,5 +4,6 @@ build
 out
 tree.txt
 ico.svg
-идеи.md
 test_game
+lib_install.bat
+notes/.obsidian
