@@ -31,7 +31,7 @@ namespace{
         }
         return std::nullopt;
     }
-    const int MODEL_ATTRIBUTES[] = {3, 2, 4, 0};
+    const int MODEL_ATTRIBUTES[] = {3, 2, 4, 3, 0};
     glm::mat4 getNodeTransform(const fastgltf::Node& node) {
         if (std::holds_alternative<fastgltf::math::fmat4x4>(node.transform)) {
             const auto& mat = std::get<fastgltf::math::fmat4x4>(node.transform);
@@ -330,9 +330,9 @@ namespace LiteAPI{
             delete vertarr;
             vertarr = nullptr;
         }
-        vertarr = new LiteAPI::VertexArray(9);
+        vertarr = new LiteAPI::VertexArray(12);
         std::vector<float> data;
-        data.reserve(vertices.size() * 9);
+        data.reserve(vertices.size() * 12);
         for(const auto& vertex : vertices){
             data.push_back(vertex.position.x);
             data.push_back(vertex.position.y);
@@ -345,6 +345,10 @@ namespace LiteAPI{
             data.push_back((float)color.g / 255);
             data.push_back((float)color.b / 255);
             data.push_back((float)color.a / 255);
+            
+            data.push_back(vertex.normal.x);
+            data.push_back(vertex.normal.y);
+            data.push_back(vertex.normal.z);
         }
         vertarr->insert(data.data(), vertices.size());
         modified = false;
@@ -508,7 +512,9 @@ namespace LiteAPI{
             glm::mat4 rotationMat = glm::mat4_cast(kf.rotation);
             glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), kf.scale);
             
-            localTransform = translationMat * rotationMat * scaleMat;
+            glm::mat4 delta = translationMat * rotationMat * scaleMat;
+            localTransform = bone.transform * delta;
+
             break;
         }
         glm::mat4 globalTransform = parentTransform * localTransform;

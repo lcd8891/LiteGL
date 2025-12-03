@@ -55,7 +55,7 @@ namespace LiteAPI{
 
         private:
         color4 color = {255,255,255,255};
-        LiteAPI::VertexArray *vertarr;
+        LiteAPI::VertexArray *vertarr = nullptr;
         LiteAPI::Texture *texture;
 
         std::unordered_map<std::string,ModelAnimation> animations;  
