@@ -1,0 +1,13 @@
+{
+	"nodes":[
+		{"id":"92f0f4c84bfec7fc","x":-20,"y":-500,"width":780,"height":660,"type":"group","label":"Этап игры LiteGL"},
+		{"id":"3fcef201c474d8ea","x":0,"y":-480,"width":240,"height":60,"type":"text","text":"Загрузка основных данных"},
+		{"id":"6221ab6f929cd93e","x":157,"y":-700,"width":250,"height":60,"type":"text","text":"LiteGL Инициализация"},
+		{"id":"0eb2eadcdabd287b","x":300,"y":-480,"width":107,"height":60,"type":"text","text":"Меню"},
+		{"id":"9b7d51b70468a88c","x":238,"y":-360,"width":169,"height":60,"type":"text","text":"Загрузка мира"},
+		{"id":"9be17fdfb87be3fc","x":323,"y":-240,"width":250,"height":60,"type":"text","text":"L"}
+	],
+	"edges":[
+		{"id":"c8fe2c734cd7ecfc","fromNode":"3fcef201c474d8ea","fromSide":"right","toNode":"0eb2eadcdabd287b","toSide":"left"}
+	]
+}
