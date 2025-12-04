@@ -3,12 +3,12 @@
 #include <LiteGL/LiteGL.hpp>
 #include <stdexcept>
 #include <LiteGL/screen/screenmgr.hpp>
-#include "gameldr/gameldr.hpp"
 #include "window/window.hpp"
 
 #include "system/priv_cache.hpp"
 #include "system/priv_arguements.hpp"
 #include "system/priv_logger.hpp"
+#include "system/dllobject.hpp"
 #include "window/exception.hpp"
 #include "system/signals.hpp"
 #include "graphics/fontloader.hpp"
@@ -29,22 +29,19 @@ void finalize(){
 	LiteAPI::ScreenAssets::deleteAll();
 	LiteAPI::TextureAssets::deleteAll();
 	LiteAPI::ScreenAssets::deleteAll();
-	GameLDR::close();
 }
 
 void loop(){
 	while(!PRIV_Window::isClosed()){
 		PRIV_Window::pollEvents();
-		LiteGame::on_frame();
 		PRIV_Window::update();
 	}
 }
-void static_initialize(){
+void base_init(){
 	system_logger->info() << "LiteGL engine v"<<LITEGL_VERSION_MAJOR<<"."<<LITEGL_VERSION_MINOR<<", by lcd8891!";
 	LiteDATA::main_config = LiteAPI::INILoader::loadFromRes("engine");
 	system_logger->info() << "Loaded engine config...";
 	Cache::check_directories();
-	GameLDR::loadgame();
 	PRIV_Window::initialize();
 	system_logger->info() << "Window and events initialized...";
 	PRIV::ScreenMGR::initialize();
@@ -52,27 +49,20 @@ void static_initialize(){
 	PRIV::FontLoader::loadfrom("./res/font");
 	system_logger->info() << "Font initialized...";
 }
-void check_screen(){
-	if(!LiteAPI::ScreenMGR::getCurrentScreen()){
-		LiteAPI::ScreenAssets::create("default");
-		LiteAPI::ScreenMGR::setScreen("default");
-		system_logger->warn() << "No screen installed! Installing \"default\"";
-	}
-}
 
 void start(){
-	static_initialize();
+	base_init();
 	try{
 		Logger::init_for_game();
 		system_logger->info() << "Created game logger...";
-		LiteGame::on_initialize();
+		system_logger->info() << "begin";
+
 		PRIV::Args::process_flags();
-		check_screen();
 		system_logger->info() << "Initialize successfully!";
 		loop();
-		LiteGame::on_exit();
+
 	}catch(const std::exception& e){
-		std::string out = "RUNTIME ERROR:\n->Ingame execution error: game_id:"+LiteGame::game_name+"\n-->Reason: "+e.what();
+		std::string out = "RUNTIME ERROR:\n->Ingame execution error: game_id:"+"\n-->Reason: "+e.what();
 		show_error(out);
 	}
 	finalize();

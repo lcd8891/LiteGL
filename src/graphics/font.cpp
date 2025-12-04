@@ -1,8 +1,7 @@
 #include <fstream>
-#include "fontloader.hpp"
+#include <LiteGL/graphics/font.hpp>
 #include <vector>
 #include <LiteGL/graphics/texture.hpp>
-#include <unordered_map>
 #include <GL/glew.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -22,12 +21,7 @@ namespace{
         unsigned size;
     };
 
-    LiteAPI::Texture* glyph_atlas;
     const LiteAPI::INISection* fontloader_config;
-    std::unordered_map<wchar_t,PRIV::GlyphMetaData> glyphs;
-    std::string font_file_format;
-    uint32 glyph_atlas_size;
-    uint8 character_scale;
     void save_locale_data(uint8 *data);
     void create_atlas(uint8 *data);
 

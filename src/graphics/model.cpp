@@ -98,7 +98,6 @@ namespace LiteAPI{
             respath/=path;
             loadGLTF(respath);
             texture = _load_texture_from_file("./res/models/"+path.replace_extension(".png").string());
-            PRIV::texture_buffer_set_mem(texture,"__model:"+path.string());
         }else{
             system_logger->error() << "ModelLoader: model is not GLTF type";
         }
@@ -584,6 +583,7 @@ namespace LiteAPI{
         if(vertarr){
             delete vertarr;
         }
+        delete texture;
     }
     
     const VertexArray* Model::getVertices(){
