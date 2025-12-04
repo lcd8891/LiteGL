@@ -1,0 +1,9 @@
+views:
+  - type: table
+    name: Таблица
+    order:
+      - file.name
+      - file.tags
+      - file.links
+      - file.ext
+    sort: []

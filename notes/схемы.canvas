@@ -1,13 +1,34 @@
 {
 	"nodes":[
-		{"id":"92f0f4c84bfec7fc","x":-20,"y":-500,"width":780,"height":660,"type":"group","label":"Этап игры LiteGL"},
-		{"id":"3fcef201c474d8ea","x":0,"y":-480,"width":240,"height":60,"type":"text","text":"Загрузка основных данных"},
-		{"id":"6221ab6f929cd93e","x":157,"y":-700,"width":250,"height":60,"type":"text","text":"LiteGL Инициализация"},
-		{"id":"0eb2eadcdabd287b","x":300,"y":-480,"width":107,"height":60,"type":"text","text":"Меню"},
-		{"id":"9b7d51b70468a88c","x":238,"y":-360,"width":169,"height":60,"type":"text","text":"Загрузка мира"},
-		{"id":"9be17fdfb87be3fc","x":323,"y":-240,"width":250,"height":60,"type":"text","text":"L"}
+		{"id":"92f0f4c84bfec7fc","type":"group","x":-220,"y":-500,"width":760,"height":640,"label":"Этап игры LiteGL"},
+		{"id":"9e71592766820847","type":"text","text":"Настраиваемые пункты через программу","x":-640,"y":-226,"width":250,"height":82,"color":"1"},
+		{"id":"9b7d51b70468a88c","type":"text","text":"Загрузка мира","x":69,"y":-380,"width":169,"height":60},
+		{"id":"bf7136d474a8aafd","type":"text","text":"Отрисовка мира и тд","x":69,"y":60,"width":211,"height":60},
+		{"id":"0eb2eadcdabd287b","type":"text","text":"Меню","x":100,"y":-480,"width":107,"height":60},
+		{"id":"ff7ba77482a9b557","type":"text","text":"Мультиплеерный режим","x":130,"y":-280,"width":240,"height":60},
+		{"id":"18ad8e9ce2a4417f","type":"text","text":"Запуск сервера","x":340,"y":-174,"width":180,"height":60},
+		{"id":"3fcef201c474d8ea","type":"text","text":"Загрузка основных данных","x":-200,"y":-480,"width":240,"height":60},
+		{"id":"9be17fdfb87be3fc","type":"text","text":"Одиночные режим","x":-200,"y":-280,"width":200,"height":60},
+		{"id":"8f587e73c037c111","type":"text","text":"Синхронизация с сервером","x":0,"y":-174,"width":250,"height":60},
+		{"id":"b132851d10865f3b","type":"text","text":"LiteGL Component","x":-640,"y":-800,"width":250,"height":60,"color":"2"},
+		{"id":"5a1ea13be6134822","type":"text","text":"LiteGL Game","x":640,"y":-800,"width":250,"height":60,"color":"2"},
+		{"id":"579e72c40da0c6ab","type":"file","file":"LiteGL Component.md","x":-1060,"y":-620,"width":400,"height":476,"color":"2"}
 	],
 	"edges":[
-		{"id":"c8fe2c734cd7ecfc","fromNode":"3fcef201c474d8ea","fromSide":"right","toNode":"0eb2eadcdabd287b","toSide":"left"}
+		{"id":"c8fe2c734cd7ecfc","fromNode":"3fcef201c474d8ea","fromSide":"right","toNode":"0eb2eadcdabd287b","toSide":"left"},
+		{"id":"cef51111da69def5","fromNode":"9b7d51b70468a88c","fromSide":"right","toNode":"ff7ba77482a9b557","toSide":"top"},
+		{"id":"e7ba424000b83d21","fromNode":"9b7d51b70468a88c","fromSide":"left","toNode":"9be17fdfb87be3fc","toSide":"top"},
+		{"id":"50c139bc09c4286e","fromNode":"9be17fdfb87be3fc","fromSide":"bottom","toNode":"bf7136d474a8aafd","toSide":"left"},
+		{"id":"ca2cf8286a9bfffa","fromNode":"8f587e73c037c111","fromSide":"bottom","toNode":"bf7136d474a8aafd","toSide":"top"},
+		{"id":"8adc34ff8b8e119c","fromNode":"18ad8e9ce2a4417f","fromSide":"bottom","toNode":"bf7136d474a8aafd","toSide":"top"},
+		{"id":"951299b031aa8028","fromNode":"ff7ba77482a9b557","fromSide":"bottom","toNode":"8f587e73c037c111","toSide":"top"},
+		{"id":"733129e13f39060e","fromNode":"ff7ba77482a9b557","fromSide":"bottom","toNode":"18ad8e9ce2a4417f","toSide":"top"},
+		{"id":"51f8e9f7910ea1eb","fromNode":"9e71592766820847","fromSide":"right","toNode":"3fcef201c474d8ea","toSide":"left","toEnd":"none","color":"1"},
+		{"id":"644d441d45f4ff11","fromNode":"9e71592766820847","fromSide":"right","toNode":"9b7d51b70468a88c","toSide":"left","toEnd":"none","color":"1"},
+		{"id":"339e9f4004e213d1","fromNode":"0eb2eadcdabd287b","fromSide":"bottom","toNode":"9b7d51b70468a88c","toSide":"top"},
+		{"id":"105b7af635fa8377","fromNode":"9e71592766820847","fromSide":"right","toNode":"bf7136d474a8aafd","toSide":"left","toEnd":"none","color":"1"},
+		{"id":"13780739a889414d","fromNode":"0eb2eadcdabd287b","fromSide":"left","toNode":"9e71592766820847","toSide":"right","toEnd":"none","color":"1"},
+		{"id":"1ab71a0bb04f044b","fromNode":"b132851d10865f3b","fromSide":"bottom","toNode":"9e71592766820847","toSide":"top","color":"2"},
+		{"id":"4b6bd1691721d70e","fromNode":"b132851d10865f3b","fromSide":"left","toNode":"579e72c40da0c6ab","toSide":"top","color":"2"}
 	]
 }
