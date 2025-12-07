@@ -84,7 +84,7 @@ namespace LiteAPI{
         FT_Face face;
         if(FT_New_Face(ft,path.c_str(),0,&face))throw std::runtime_error("coudn't load font: "+path.string());
         unsigned glyph_atlas_size = std::stoi((*fontloader_config)["glyph_atlas_size"]);
-        character_scale = std::stoi((*fontloader_config)["character_scale"]);
+        character_heigth = std::stoi((*fontloader_config)["character_scale"]);
 
         FT_Set_Pixel_Sizes(face,0,character_scale);
         uint8 *atlasData = new uint8[glyph_atlas_size*glyph_atlas_size];
@@ -167,7 +167,8 @@ namespace LiteAPI{
             glyphs[character] = data;
         }
         uint32 atlasSize;
-        file.read(F_TOCHAR(atlasSize),sizeof(atlasSize));
+        file.read(F_TOCHAR(atlasSize),sizeof(uint32));
+        file.read(F_TOCHAR(character_heigth),sizeof(uint32));
         file.close();
 
         int w,h;
@@ -194,8 +195,12 @@ namespace LiteAPI{
         }
         unsigned tmp = glyph_atlas_size;
         file.write(F_TOCHAR(tmp),sizeof(uint32));
+        file.write(F_TOCHAR(character_heigth),sizeof(uint32));
         export_to_png(font_name,data,glyph_atlas_size);
         system_logger->info() << "Created new cached font data";
+    }
+    unsigned Font::getGlyphHeight(){
+        return this->character_heigth;
     }
 }
 

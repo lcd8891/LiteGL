@@ -1,5 +1,4 @@
 #include "priv_logger.hpp"
-#include "../gameldr/gameldr.hpp"
 #include <LiteGL/system/logger.hpp>
 #include <LiteGL/system/time.hpp>
 #include <sstream>
@@ -23,8 +22,8 @@ namespace{
         void open_in_file(){
             log_file.open("litegl.log", std::ios::app);
         }
-        void init_for_game(){
-            game_logger = new LiteAPI::Logger(LiteGame::game_name);
+        void init_for_game(const DLLObject* game){
+            game_logger = new LiteAPI::Logger(game->getObject<const char*>("litegl_game_name"));
         }
         void close(){
             if(log_file.is_open())log_file.close();

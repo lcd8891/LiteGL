@@ -7,6 +7,7 @@ struct vector2;
 struct color4;
 
 namespace LiteAPI{
+    class Font;
     enum class ScreenItemType{
         Rectangle,Line,Texture,Text
     };
@@ -89,8 +90,9 @@ namespace LiteAPI{
     class TextItem : public ScreenItem{
         std::wstring str;
         float scale;
+        Font* font;
         public:
-        TextItem(vector2<int> a,color4 b,std::wstring c,float s = 1.f,vector2<float> r = {0,0});
+        TextItem(vector2<int> a,color4 b,std::wstring c,std::string f,float s = 1.f,vector2<float> r = {0,0});
         
         VertexArray* getMesh() override;
         ScreenItemType getType() override {return ScreenItemType::Text;};

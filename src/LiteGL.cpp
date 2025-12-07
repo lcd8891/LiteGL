@@ -14,6 +14,10 @@
 #include "graphics/fontloader.hpp"
 #include "LiteData.hpp"
 
+namespace{
+	DLLObject* game;
+}
+
 namespace PRIV{
 	namespace ScreenMGR{
         void initialize();
@@ -46,14 +50,16 @@ void base_init(){
 	system_logger->info() << "Window and events initialized...";
 	PRIV::ScreenMGR::initialize();
 	system_logger->info() << "Engine config loaded...";
-	PRIV::FontLoader::loadfrom("./res/font");
+	PRIV::FontLoader::init();
 	system_logger->info() << "Font initialized...";
+	game = new DLLObject(LiteDATA::game_dll_name);
+	system_logger->info() << "Loaded game!";
 }
 
 void start(){
 	base_init();
 	try{
-		Logger::init_for_game();
+		Logger::init_for_game(game);
 		system_logger->info() << "Created game logger...";
 		system_logger->info() << "begin";
 
@@ -62,7 +68,9 @@ void start(){
 		loop();
 
 	}catch(const std::exception& e){
-		std::string out = "RUNTIME ERROR:\n->Ingame execution error: game_id:"+"\n-->Reason: "+e.what();
+		std::string out = "RUNTIME ERROR:\n->Ingame execution error: game_id:";
+		out+="\n-->Reason: ";
+		out+=e.what();
 		show_error(out);
 	}
 	finalize();

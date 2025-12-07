@@ -6,12 +6,10 @@
 #include <filesystem>
 
 #define TO_CHAR(A) reinterpret_cast<char*>(&A)
-namespace {
-    std::string genHash(std::string &in){
+namespace Cache{
+    std::string genHash(const std::string &in){
         return std::to_string(std::hash<std::string>{}(in));
     }
-}
-namespace Cache{
     void cleanup(){
         
     }
@@ -35,7 +33,7 @@ namespace Cache{
         char* data = new char[size];
         unsigned format = 0;
         glGetProgramBinary(id,size,nullptr,&format,data);
-        std::ofstream file(".cache/"+genHash(name)+".bin",std::ios::binary);
+        std::ofstream file(".cache/sh"+genHash(name)+".bin",std::ios::binary);
         if(!file.is_open()){
             system_logger->error() << "Coudn't save shader " << name;
         }
@@ -45,7 +43,7 @@ namespace Cache{
         file.close();
     }
     LiteAPI::Shader* load_chached_shader(std::string name){
-        std::ifstream file(".cache/"+genHash(name)+".bin",std::ios::binary);
+        std::ifstream file(".cache/sh"+genHash(name)+".bin",std::ios::binary);
         if(!file.is_open()){
             system_logger->error() << "Couldn't open cached shader: " << name;
             return nullptr;

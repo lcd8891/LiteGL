@@ -19,6 +19,7 @@ namespace LiteAPI{
         LiteAPI::Texture* glyph_atlas;
         std::unordered_map<wchar_t,GlyphMetaData> glyphs;
         std::string font_name;
+        unsigned character_heigth;
         
         void genFontData(std::filesystem::path path);
         void createAtlas(uint8 *data,const unsigned &glyph_atlas_size);
@@ -31,6 +32,6 @@ namespace LiteAPI{
 
         Texture* getTexture();
         const GlyphMetaData& operator[](wchar_t ch);
-
+        unsigned getGlyphHeight();
     };
 }

@@ -4,6 +4,7 @@
 namespace LiteAPI{class Shader;}
 
 namespace Cache{
+    std::string genHash(const std::string &in);
     void cleanup();
     void check_directories();
     void cache_font();

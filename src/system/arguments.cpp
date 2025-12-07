@@ -3,7 +3,7 @@
 #include <functional>
 #include <unordered_map>
 #include <LiteGL/window/window.hpp>
-#include "../gameldr/gameldr.hpp"
+#include "../LiteData.hpp"
 #include <filesystem>
 
 #ifdef _WIN32
@@ -73,7 +73,7 @@ namespace{
             LiteAPI::Window::setFullscreen(true);
         };
         arg_handler[Argument("game=",0)] = [](const std::string &_value){
-            GameLDR::loadpath="./"+_value;
+            LiteDATA::game_dll_name="./"+_value;
         };
         arg_handler[Argument("reload",'r')] = [](const std::string &_value){
             std::filesystem::remove(".cache");

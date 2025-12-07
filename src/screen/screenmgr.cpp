@@ -6,6 +6,7 @@
 #include <LiteGL/graphics/shaderconstructor.hpp>
 #include <LiteGL/graphics/mesh.hpp>
 #include <LiteGL/graphics/texture.hpp>
+#include <LiteGL/graphics/font.hpp>
 #include <LiteGL/assets/tb.hpp>
 #include <LiteGL/assets/scrbuffer.hpp>
 #include "../system/priv_logger.hpp"
@@ -21,7 +22,7 @@
 #define _ITEM_MESH_INIT_POSITION float x1(position.x + (window_size.x * relative.x)),x2(x1+size.x),y1(position.y + (window_size.y * relative.y)),y2(y1+size.y);
 #define _ITEM_MESH_INIT_UV float u1(uv[0]),v1(uv[1]),u2(uv[2]),v2(uv[3]);
 
-using PRIV::GlyphMetaData;
+using GlyphMetaData = LiteAPI::Font::GlyphMetaData;
 
 namespace{
     vector2<uint16> window_size;
@@ -214,15 +215,18 @@ namespace LiteAPI{
         texture_key = _key;
     }
     
-    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c,float s,vector2<float> r):ScreenItem(a,b,r),str(c),scale(s){}
+    TextItem::TextItem(vector2<int> a,color4 b,std::wstring c,std::string f,float s,vector2<float> r):ScreenItem(a,b,r),str(c),scale(s){
+        //font = FontAssets::get(f);
+    }
     VertexArray* TextItem::getMesh(){
         _ITEM_MESH_INIT_COLOR
         VertexArray *arr = new VertexArray(8);
         float xpos = 0;
+        unsigned height = font->getGlyphHeight();
         for(wchar_t &ch : str){
-            GlyphMetaData data = PRIV::FontLoader::getGlyphMetaData(ch);
+            GlyphMetaData data = (*this->font)[ch];
             float x1 = position.x + xpos + data.bearing.x  + (window_size.x * relative.x);
-            float y1 = position.y + (*PRIV::FontLoader::character_size_ptr - data.bearing.y) * scale  + (window_size.y * relative.y);
+            float y1 = position.y + (height - data.bearing.y) * scale  + (window_size.y * relative.y);
             float x2 = x1 + data.size.x * scale;
             float y2 = y1 + data.size.y * scale;
             
