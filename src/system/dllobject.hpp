@@ -18,12 +18,12 @@ class DLLObject{
     DLLObject& operator=(const DLLObject&) = delete;
 
     template<typename T>
-    void* getObject(const std::string &name) const {
+    T getObject(const std::string &name) const {
         void* s = getSymbol(name);
         if(!s){
             throw std::runtime_error(path.string()+" - coudn't load symbol: "+name);
         }
-        return reinterpret_cast<T*>(s)
+        return reinterpret_cast<T>(s);
     }
     template<typename T>
     std::function<T> getFunction(const std::string &name) const {
