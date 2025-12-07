@@ -11,9 +11,12 @@
 #include <stb_image_write.h>
 #include <stb_image.h>
 #include "../system/priv_logger.hpp"
+#include "../system/priv_cache.hpp"
 
 #define F_TOCHAR(OBJ) reinterpret_cast<char*>(&OBJ)
 #define F_TOCHAR_NOPTR(OBJ) reinterpret_cast<char*>(OBJ)
+
+using GlyphMetaData = LiteAPI::Font::GlyphMetaData;
 
 namespace{
     struct Locale{
@@ -21,34 +24,69 @@ namespace{
         unsigned size;
     };
 
-    const LiteAPI::INISection* fontloader_config;
-    void save_locale_data(uint8 *data);
-    void create_atlas(uint8 *data);
+    FT_Library ft;
+    uint8 character_scale;
+    std::vector<Locale> locale;
 
-    std::vector<Locale> load_locale(){
+    const LiteAPI::INISection* fontloader_config;
+
+    void load_locale(){
+        locale.clear();
         std::ifstream file("./res/locale.loc",std::ios::binary);
         if(!file.is_open())throw std::runtime_error("Couldn't load locale file in ./res/locale.loc");
         unsigned locales_count;file.read(F_TOCHAR(locales_count),sizeof(unsigned));
-        std::vector<Locale> tmp;
         for(unsigned i = 0;i<locales_count;i++){
             Locale loc;
             file.read(F_TOCHAR(loc.offset),sizeof(unsigned));
             file.read(F_TOCHAR(loc.size),sizeof(unsigned));
-            tmp.push_back(loc);
+            locale.push_back(loc);
         }
         file.close();
-        return tmp;
     }
-    void load_glyphs(std::string path){
-        FT_Library ft;
+    void export_to_png(std::string name,uint8 *data,const unsigned &glyph_atlas_size){
+        stbi_write_png((".cache/fontatlas"+name+".png").c_str(),glyph_atlas_size,glyph_atlas_size,1,data,glyph_atlas_size);
+        system_logger->info() << "Exported .cache/font_atlas.png";
+    }
+    uint8* import_from_png(std::string name, int* width, int* height) {
+        int channels;
+        std::string filename = ".cache/fontatlas"+name+".png";
+        uint8* data = stbi_load(filename.c_str(), width, height, &channels, 1);
+        if (!data) {
+            throw std::runtime_error(std::string("Failed to load PNG: ") + filename);
+        }
+        return data;
+    }
+    
+    bool check_locale_data(std::string name){
+        return std::filesystem::exists(".cache/fontdata"+name+".bin");
+    }
+}
+
+namespace LiteAPI{
+    Font::Font(std::filesystem::path path):font_name(Cache::genHash(path.filename().string())){
+        if(check_locale_data(font_name)){
+            loadFontData();
+        }else{
+            genFontData(path);
+        }
+    }
+    Font::~Font(){
+        delete this->glyph_atlas;
+    }
+
+    Texture* Font::getTexture(){
+        return this->glyph_atlas;
+    }
+    const Font::GlyphMetaData& Font::operator[](wchar_t ch){
+        return glyphs[ch];
+    }
+    void Font::genFontData(std::filesystem::path path){
         FT_Face face;
-        if(FT_Init_FreeType(&ft))throw std::runtime_error("coudn't initialize freetype");
-        if(FT_New_Face(ft,path.c_str(),0,&face))throw std::runtime_error("coudn't load font: "+path);
-        glyph_atlas_size = std::stoi((*fontloader_config)["glyph_atlas_size"]);
+        if(FT_New_Face(ft,path.c_str(),0,&face))throw std::runtime_error("coudn't load font: "+path.string());
+        unsigned glyph_atlas_size = std::stoi((*fontloader_config)["glyph_atlas_size"]);
         character_scale = std::stoi((*fontloader_config)["character_scale"]);
 
         FT_Set_Pixel_Sizes(face,0,character_scale);
-        std::vector<Locale> locale = load_locale();
         uint8 *atlasData = new uint8[glyph_atlas_size*glyph_atlas_size];
         memset(atlasData,0,glyph_atlas_size*glyph_atlas_size);
         unsigned x=0, y=0, maxrow=0;
@@ -74,7 +112,7 @@ namespace{
                         atlasData[index]=value;
                     }
                 }
-                PRIV::GlyphMetaData data;
+                GlyphMetaData data;
                 data.advance = face->glyph->advance.x >> 6;
                 data.texCoord = {(float)x/glyph_atlas_size , (float)y/glyph_atlas_size};
                 data.texSize = {(float)bitmap.width/glyph_atlas_size,(float)bitmap.rows/glyph_atlas_size};
@@ -86,13 +124,13 @@ namespace{
                 maxrow = std::max(maxrow,(unsigned)bitmap.rows);
             }
         }
-        create_atlas(atlasData);
-        save_locale_data(atlasData);
+        createAtlas(atlasData,glyph_atlas_size);
+        saveFontData(atlasData,glyph_atlas_size);
         delete[] atlasData;
         FT_Done_Face(face);
         FT_Done_FreeType(ft);
     }
-    void create_atlas(uint8 *data){
+    void Font::createAtlas(uint8 *data,const unsigned &glyph_atlas_size){
         unsigned id;
         glGenTextures(1,&id);
         glBindTexture(GL_TEXTURE_2D,id);
@@ -113,37 +151,8 @@ namespace{
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glyph_atlas = new LiteAPI::Texture(id);
     }
-    void export_to_png(uint8 *data){
-        stbi_write_png(".cache/font_atlas.png",glyph_atlas_size,glyph_atlas_size,1,data,glyph_atlas_size);
-        system_logger->info() << "Exported .cache/font_atlas.png";
-    }
-    uint8* import_from_png(const char* filename, int* width, int* height) {
-        int channels;
-        uint8* data = stbi_load(filename, width, height, &channels, 1);
-        if (!data) {
-            throw std::runtime_error(std::string("Failed to load PNG: ") + filename);
-        }
-        return data;
-    }
-    void save_locale_data(uint8 *data){
-        std::ofstream file(".cache/font.bin",std::ios::binary);
-        if(!file.is_open())throw std::runtime_error("Coudn't cache font data!");
-        file.write(F_TOCHAR(character_scale),sizeof(unsigned));
-        unsigned count = glyphs.size();
-        file.write(F_TOCHAR(count),sizeof(unsigned));
-        for(auto &it : glyphs){
-            unsigned character = it.first;
-            PRIV::GlyphMetaData data = it.second;
-
-            file.write(F_TOCHAR(character),sizeof(unsigned));
-            file.write(F_TOCHAR(data),sizeof(PRIV::GlyphMetaData));
-        }
-        file.write(F_TOCHAR(glyph_atlas_size),sizeof(uint32));
-        export_to_png(data);
-        system_logger->info() << "Created new cached font data";
-    }
-    void load_locale_data(){
-        std::ifstream file(".cache/font.bin",std::ios::binary);
+    void Font::loadFontData(){
+        std::ifstream file(".cache/fontdata"+font_name+".bin",std::ios::binary);
         if(!file.is_open())throw std::runtime_error("Coudn't load cached font data!");
         unsigned count;
         file.read(F_TOCHAR(character_scale),sizeof(unsigned));
@@ -152,8 +161,8 @@ namespace{
             unsigned character;
             file.read(F_TOCHAR(character),sizeof(unsigned));
 
-            PRIV::GlyphMetaData data;
-            file.read(F_TOCHAR(data),sizeof(PRIV::GlyphMetaData));
+            LiteAPI::Font::GlyphMetaData data;
+            file.read(F_TOCHAR(data),sizeof(LiteAPI::Font::GlyphMetaData));
 
             glyphs[character] = data;
         }
@@ -162,47 +171,44 @@ namespace{
         file.close();
 
         int w,h;
-        uint8* data = import_from_png(".cache/font_atlas.png", &w, &h);
+        uint8* data = import_from_png(font_name, &w, &h);
         if (w != atlasSize || h != atlasSize) {
             stbi_image_free(data);
-            throw std::runtime_error("Cached PNG size doesn't match metadata");
+            throw std::runtime_error("FontLoader: Cached PNG size doesn't match metadata");
         }
-        glyph_atlas_size = atlasSize;
-        create_atlas(data);
+        createAtlas(data,atlasSize);
         delete[] data;
     }
-    bool check_locale_data(){
-        return std::filesystem::exists(".cache/font.bin");
+    void Font::saveFontData(uint8 *data,const unsigned &glyph_atlas_size){
+        std::ofstream file(".cache/fontdata"+font_name+".bin",std::ios::binary);
+        if(!file.is_open())throw std::runtime_error("Coudn't cache font data!");
+        file.write(F_TOCHAR(character_scale),sizeof(unsigned));
+        unsigned count = glyphs.size();
+        file.write(F_TOCHAR(count),sizeof(unsigned));
+        for(auto &it : glyphs){
+            unsigned character = it.first;
+            GlyphMetaData data = it.second;
+
+            file.write(F_TOCHAR(character),sizeof(unsigned));
+            file.write(F_TOCHAR(data),sizeof(GlyphMetaData));
+        }
+        unsigned tmp = glyph_atlas_size;
+        file.write(F_TOCHAR(tmp),sizeof(uint32));
+        export_to_png(font_name,data,glyph_atlas_size);
+        system_logger->info() << "Created new cached font data";
     }
 }
 
-
 namespace PRIV{
-    namespace FontLoader{
-        const LiteAPI::Texture *glyph_atlas_ptr = nullptr;
-        const uint8 *character_size_ptr = nullptr;
-        void loadfrom(std::string _path){
+
+    namespace FontLoader{ 
+        void init(){
+            if(FT_Init_FreeType(&ft))throw std::runtime_error("FontLoader: Coudn't init freetype");
             fontloader_config = &(*LiteDATA::main_config)["fontloader"];
-            font_file_format = (*fontloader_config)["font_format"];
-            std::string full_path = _path+"."+font_file_format;
-            if(check_locale_data()){
-                load_locale_data();
-            }else{
-                load_glyphs(full_path);
-            }
-            glyph_atlas_ptr=glyph_atlas;
-            character_size_ptr=&character_scale;
-        }
-        const GlyphMetaData& getGlyphMetaData(wchar_t character){
-            auto it = glyphs.find(character);
-            if(it==glyphs.end()){
-                system_logger->error() << "Couldn't find glyph data! Check res/locale.loc. Glyph: " << (int)character;
-                return glyphs['*'];
-            }
-            return it->second;
+            load_locale();
         }
         void close(){
-            delete glyph_atlas;
+            FT_Done_FreeType(ft);
         }
     }
 }
